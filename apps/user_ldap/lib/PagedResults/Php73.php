@@ -116,6 +116,33 @@ class Php73 implements IAdapter {
 			$this->linkData[$linkId] = [];
 		}
 
+		$this->linkData[$linkId]['searchArgs'] = func_get_args();
+		$this->preparePagesResultsArgs($linkId, 'searchArgs');
+	}
+
+	public function getSearchArgs($link): array {
+		$linkId = $this->getLinkId($link);
+		return $this->linkData[$linkId]['searchArgs'];
+	}
+
+	public function setReadArgs($link, string $baseDN, string $filter, string $attr): void {
+		$linkId = $this->getLinkId($link);
+		if(!isset($this->linkData[$linkId])) {
+			$this->linkData[$linkId] = [];
+		}
+
+		$this->linkData[$linkId]['readArgs'] = func_get_args();
+		$this->linkData[$linkId]['readArgs'][] = 0; // $attrsonly default
+		$this->linkData[$linkId]['readArgs'][] = -1; // $sizelimit default
+		$this->preparePagesResultsArgs($linkId, 'readArgs');
+	}
+
+	public function getReadArgs($link): array {
+		$linkId = $this->getLinkId($link);
+		return $this->linkData[$linkId]['readArgs'];
+	}
+
+	protected function preparePagesResultsArgs(int $linkId, string $methodKey): void {
 		$serverControls = [[
 			'oid' => LDAP_CONTROL_PAGEDRESULTS,
 			'value' => [
@@ -124,14 +151,8 @@ class Php73 implements IAdapter {
 			]
 		]];
 
-		$this->linkData[$linkId]['searchArgs'] = func_get_args();
-		$this->linkData[$linkId]['searchArgs'][] = -1; // timelimit
-		$this->linkData[$linkId]['searchArgs'][] = LDAP_DEREF_NEVER;
-		$this->linkData[$linkId]['searchArgs'][] = $serverControls;
-	}
-
-	public function getSearchArgs($link): array {
-		$linkId = $this->getLinkId($link);
-		return $this->linkData[$linkId]['searchArgs'];
+		$this->linkData[$linkId][$methodKey][] = -1; // timelimit
+		$this->linkData[$linkId][$methodKey][] = LDAP_DEREF_NEVER;
+		$this->linkData[$linkId][$methodKey][] = $serverControls;
 	}
 }

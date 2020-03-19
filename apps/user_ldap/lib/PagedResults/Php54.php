@@ -110,4 +110,17 @@ class Php54 implements IAdapter {
 		$linkId = $this->getLinkId($link);
 		return $this->linkData[$linkId]['searchArgs'];
 	}
+
+	public function setReadArgs($link, string $baseDN, string $filter, string $attr): void {
+		$linkId = $this->getLinkId($link);
+		if(!isset($this->linkData[$linkId])) {
+			$this->linkData[$linkId] = [];
+		}
+		$this->linkData[$linkId]['readArgs'] = func_get_args();
+	}
+
+	public function getReadArgs($link): array {
+		$linkId = $this->getLinkId($link);
+		return $this->linkData[$linkId]['readArgs'];
+	}
 }

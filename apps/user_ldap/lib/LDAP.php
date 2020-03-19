@@ -206,7 +206,8 @@ class LDAP implements ILDAPWrapper {
 	 * @return mixed
 	 */
 	public function read($link, $baseDN, $filter, $attr) {
-		return $this->invokeLDAPMethod('read', $link, $baseDN, $filter, $attr);
+		$this->pagedResultsAdapter->setReadArgs($link, $baseDN, $filter, $attr);
+		return $this->invokeLDAPMethod('read', ...$this->pagedResultsAdapter->getReadArgs($link));
 	}
 
 	/**

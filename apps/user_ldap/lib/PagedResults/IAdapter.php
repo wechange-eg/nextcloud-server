@@ -65,6 +65,10 @@ interface IAdapter {
 
 	public function getSearchArgs($link): array;
 
+	public function setReadArgs($link, string $baseDN, string $filter, string $attr): void;
+
+	public function getReadArgs($link): array;
+
 	/**
 	 * Returns the current paged results cookie
 	 *

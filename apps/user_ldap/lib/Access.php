@@ -258,7 +258,7 @@ class Access extends LDAPUtility {
 	 * @throws ServerNotAvailableException
 	 */
 	public function executeRead($cr, $dn, $attribute, $filter, $maxResults) {
-		$this->initPagedSearch($filter, [$dn], [$attribute], $maxResults, 0);
+		$this->initPagedSearch($filter, $dn, [$attribute], $maxResults, 0);
 		$dn = $this->helper->DNasBaseParameter($dn);
 		$rr = @$this->invokeLDAPMethod('read', $cr, $dn, $filter, [$attribute]);
 		if (!$this->ldap->isResource($rr)) {
