@@ -1162,7 +1162,7 @@ class Access extends LDAPUtility {
 		}
 
 		//check whether paged search should be attempted
-		$pagedSearchOK = $this->initPagedSearch($filter, $base, $attr, (int)$limit, $offset);
+		$pagedSearchOK = $this->initPagedSearch($filter, $base, $attr, (int)$limit, (int)$offset);
 
 		$sr = $this->invokeLDAPMethod('search', $cr, $base, $filter, $attr);
 		// cannot use $cr anymore, might have changed in the previous call!
