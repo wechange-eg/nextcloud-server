@@ -1501,7 +1501,7 @@ trigger:
 
 ---
 kind: pipeline
-name: integration-ldap-openldap-uid-features-old-ldap-api
+name: integration-ldap-openldap-uid-features-php54-api
 
 steps:
 - name: submodules
