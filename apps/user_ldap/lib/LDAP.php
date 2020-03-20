@@ -97,10 +97,9 @@ class LDAP implements ILDAPWrapper {
 	 * @param LDAP $link
 	 * @param int $pageSize
 	 * @param bool $isCritical
-	 * @param string $cookie
 	 * @return mixed|true
 	 */
-	public function controlPagedResult($link, $pageSize, $isCritical, $cookie) {
+	public function controlPagedResult($link, $pageSize, $isCritical) {
 		$fn = $this->pagedResultsAdapter->getRequestCallFunc();
 		$this->pagedResultsAdapter->setRequestParameters($link, $pageSize, $isCritical);
 		if($fn === null) {

@@ -91,6 +91,8 @@ class Access extends LDAPUtility {
 	private $config;
 	/** @var IUserManager */
 	private $ncUserManager;
+	/** @var string */
+	private $lastCookie = '';
 
 	public function __construct(
 		Connection $connection,
@@ -1204,7 +1206,7 @@ class Access extends LDAPUtility {
 		if($pagedSearchOK) {
 			$cr = $this->connection->getConnectionResource();
 			if($this->ldap->controlPagedResultResponse($cr, $sr, $cookie)) {
-				$this->setPagedResultCookie($base, $filter, $limit, $offset, $cookie);
+				$this->setPagedResultCookie($cookie);
 			}
 
 			//browsing through prior pages to get the cookie for the new one
@@ -1372,7 +1374,7 @@ class Access extends LDAPUtility {
 				unset($findings['count']);
 
 				$continue = $this->processPagedSearchStatus($sr, $filter, $base, $iFoundItems,
-					$limitPerPage, $offset, $pagedSearchOK,
+					$limitPerPage, (int)$offset, $pagedSearchOK,
 					$skipHandling);
 				$offset += $limitPerPage;
 			} while ($continue && $pagedSearchOK && ($limit === null || count($findings) < $limit));
@@ -1971,35 +1973,16 @@ class Access extends LDAPUtility {
 	 */
 	private function abandonPagedSearch() {
 		$cr = $this->connection->getConnectionResource();
-		$this->invokeLDAPMethod('controlPagedResult', $cr, 0, false, $this->lastCookie);
+		$this->invokeLDAPMethod('controlPagedResult', $cr, 0, false);
 		$this->getPagedSearchResultState();
 		$this->lastCookie = '';
-		$this->cookies = [];
 	}
 
-	/**
-	 * get a cookie for the next LDAP paged search
-	 * @param string $base a string with the base DN for the search
-	 * @param string $filter the search filter to identify the correct search
-	 * @param int $limit the limit (or 'pageSize'), to identify the correct search well
-	 * @param int $offset the offset for the new search to identify the correct search really good
-	 * @return string containing the key or empty if none is cached
-	 */
-	private function getPagedResultCookie($base, $filter, $limit, $offset) {
+	private function getPagedResultCookie(int $offset): string {
 		if($offset === 0) {
 			return '';
 		}
-		$offset -= $limit;
-		//we work with cache here
-		$cacheKey = 'lc' . crc32($base) . '-' . crc32($filter) . '-' . (int)$limit . '-' . (int)$offset;
-		$cookie = '';
-		if(isset($this->cookies[$cacheKey])) {
-			$cookie = $this->cookies[$cacheKey];
-			if(is_null($cookie)) {
-				$cookie = '';
-			}
-		}
-		return $cookie;
+		return $this->lastCookie;
 	}
 
 	/**
@@ -2022,20 +2005,9 @@ class Access extends LDAPUtility {
 		return true;
 	}
 
-	/**
-	 * set a cookie for LDAP paged search run
-	 * @param string $base a string with the base DN for the search
-	 * @param string $filter the search filter to identify the correct search
-	 * @param int $limit the limit (or 'pageSize'), to identify the correct search well
-	 * @param int $offset the offset for the run search to identify the correct search really good
-	 * @param string $cookie string containing the cookie returned by ldap_control_paged_result_response
-	 * @return void
-	 */
-	private function setPagedResultCookie($base, $filter, $limit, $offset, $cookie) {
+	private function setPagedResultCookie(string $cookie): void {
 		// allow '0' for 389ds
 		if(!empty($cookie) || $cookie === '0') {
-			$cacheKey = 'lc' . crc32($base) . '-' . crc32($filter) . '-' . (int)$limit . '-' . (int)$offset;
-			$this->cookies[$cacheKey] = $cookie;
 			$this->lastCookie = $cookie;
 		}
 	}
@@ -2071,20 +2043,27 @@ class Access extends LDAPUtility {
 		$pagedSearchOK = false;
 		if ($limit !== 0) {
 			$offset = (int)$offset; //can be null
-			\OCP\Util::writeLog('user_ldap',
-				'initializing paged search for  Filter '.$filter.' base '.print_r($bases, true)
-				.' attr '.print_r($attr, true). ' limit ' .$limit.' offset '.$offset,
-				ILogger::DEBUG);
-			//get the cookie from the search for the previous search, required by LDAP
+			\OC::$server->getLogger()->debug(
+				'initializing paged search for filter {filter}, base {base}, attr {attr}, limit {limit}, offset {offset}',
+				[
+					'app' => 'user_ldap',
+					'filter' => $filter,
+					'base' => $base,
+					'attr' => $attr,
+					'limit' => $limit,
+					'offset' => $offset
+				]
+			);
 
-			$cookie = $this->getPagedResultCookie($base, $filter, $limit, $offset);
+			//get the cookie from the search for the previous search, required by LDAP
+			$cookie = $this->getPagedResultCookie($offset);
 			if(empty($cookie) && $cookie !== "0" && ($offset > 0)) {
 				// no cookie known from a potential previous search. We need
 				// to start from 0 to come to the desired page. cookie value
 				// of '0' is valid, because 389ds
 				$reOffset = ($offset - $limit) < 0 ? 0 : $offset - $limit;
 				$this->search($filter, [$base], $attr, $limit, $reOffset, true);
-				$cookie = $this->getPagedResultCookie($base, $filter, $limit, $offset);
+				$cookie = $this->getPagedResultCookie($offset);
 				//still no cookie? obviously, the server does not like us. Let's skip paging efforts.
 				// '0' is valid, because 389ds
 				//TODO: remember this, probably does not change in the next request...
@@ -2097,7 +2076,7 @@ class Access extends LDAPUtility {
 				$this->abandonPagedSearch();
 				$pagedSearchOK = $this->invokeLDAPMethod('controlPagedResult',
 					$this->connection->getConnectionResource(), $limit,
-					false, $cookie);
+					false);
 				if($pagedSearchOK) {
 					\OC::$server->getLogger()->debug(
 						'Ready for a paged search',
@@ -2127,7 +2106,7 @@ class Access extends LDAPUtility {
 			$pageSize = (int)$this->connection->ldapPagingSize > 0 ? (int)$this->connection->ldapPagingSize : 500;
 			$pagedSearchOK = $this->invokeLDAPMethod('controlPagedResult',
 				$this->connection->getConnectionResource(),
-				$pageSize, false, '');
+				$pageSize, false);
 		}
 
 		return $pagedSearchOK;
