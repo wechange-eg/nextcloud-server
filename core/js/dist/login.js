@@ -26016,6 +26016,15 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -26078,6 +26087,7 @@ __webpack_require__.r(__webpack_exports__);
     return {
       loading: false,
       user: this.username,
+      passwordlessLogin: false,
       resetPassword: false
     };
   },
@@ -61589,7 +61599,7 @@ var render = function() {
     }),
     _vm._v(" "),
     _c("button", { on: { click: _vm.authenticate } }, [
-      _vm._v("\n\t\tLogin\n\t")
+      _vm._v("\n\t\t" + _vm._s(_vm.t("core", "Log in")) + "\n\t")
     ]),
     _vm._v(" "),
     _c("input", {
@@ -61939,7 +61949,9 @@ var render = function() {
     "div",
     [
       _c("transition", { attrs: { name: "fade", mode: "out-in" } }, [
-        !_vm.resetPassword && _vm.resetPasswordTarget === ""
+        !_vm.passwordlessLogin &&
+        !_vm.resetPassword &&
+        _vm.resetPasswordTarget === ""
           ? _c(
               "div",
               { key: "login" },
@@ -62005,7 +62017,67 @@ var render = function() {
                         )
                       ]
                     )
-                  : _vm._e()
+                  : _vm._e(),
+                _vm._v(" "),
+                _c("br"),
+                _vm._v(" "),
+                _c(
+                  "a",
+                  {
+                    on: {
+                      click: function($event) {
+                        $event.preventDefault()
+                        _vm.passwordlessLogin = true
+                      }
+                    }
+                  },
+                  [
+                    _vm._v(
+                      "\n\t\t\t\t" +
+                        _vm._s(_vm.t("core", "Log in with a device")) +
+                        "\n\t\t\t"
+                    )
+                  ]
+                )
+              ],
+              1
+            )
+          : !_vm.loading && _vm.passwordlessLogin
+          ? _c(
+              "div",
+              { key: "reset", staticClass: "login-additional" },
+              [
+                _c("PasswordLessLoginForm", {
+                  attrs: {
+                    username: _vm.user,
+                    "redirect-url": _vm.redirectUrl
+                  },
+                  on: {
+                    "update:username": function($event) {
+                      _vm.user = $event
+                    },
+                    submit: function($event) {
+                      _vm.loading = true
+                    }
+                  }
+                }),
+                _vm._v(" "),
+                _c(
+                  "a",
+                  {
+                    on: {
+                      click: function($event) {
+                        $event.preventDefault()
+                        _vm.passwordlessLogin = false
+                      }
+                    }
+                  },
+                  [
+                    _vm._v(
+                      "\n\t\t\t\t" + _vm._s(_vm.t("core", "Back")) + "\n\t\t\t"
+                    )
+                  ]
+                )
               ],
               1
             )
@@ -62057,25 +62129,7 @@ var render = function() {
               1
             )
           : _vm._e()
-      ]),
-      _vm._v(" "),
-      _c(
-        "div",
-        [
-          _c("PasswordLessLoginForm", {
-            attrs: { username: _vm.user, "redirect-url": _vm.redirectUrl },
-            on: {
-              "update:username": function($event) {
-                _vm.user = $event
-              },
-              submit: function($event) {
-                _vm.loading = true
-              }
-            }
-          })
-        ],
-        1
-      )
+      ])
     ],
     1
   )

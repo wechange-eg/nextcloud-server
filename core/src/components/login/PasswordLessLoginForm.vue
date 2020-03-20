@@ -9,8 +9,8 @@
 			:aria-label="t('core', 'Username or email')"
 			required>
 
-		<button v-on:click="authenticate">
-			Login
+		<button @click="authenticate">
+			{{ t('core', 'Log in') }}
 		</button>
 
 		<input type="hidden"

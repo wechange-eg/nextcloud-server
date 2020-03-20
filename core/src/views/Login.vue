@@ -22,7 +22,7 @@
 <template>
 	<div>
 		<transition name="fade" mode="out-in">
-			<div v-if="!resetPassword && resetPasswordTarget === ''"
+			<div v-if="!passwordlessLogin && !resetPassword && resetPasswordTarget === ''"
 				key="login">
 				<LoginForm
 					:username.sync="user"
@@ -45,6 +45,21 @@
 					@click.prevent="resetPassword = true">
 					{{ t('core', 'Forgot password?') }}
 				</a>
+				<br>
+				<a @click.prevent="passwordlessLogin = true">
+					{{ t('core', 'Log in with a device') }}
+				</a>
+			</div>
+			<div v-else-if="!loading && passwordlessLogin"
+				key="reset"
+				class="login-additional">
+				<PasswordLessLoginForm
+					:username.sync="user"
+					:redirect-url="redirectUrl"
+					@submit="loading = true" />
+				<a @click.prevent="passwordlessLogin = false">
+					{{ t('core', 'Back') }}
+				</a>
 			</div>
 			<div v-else-if="!loading && canResetPassword"
 				key="reset"
@@ -64,12 +79,6 @@
 					@done="passwordResetFinished" />
 			</div>
 		</transition>
-		<div>
-			<PasswordLessLoginForm
-				:username.sync="user"
-				:redirect-url="redirectUrl"
-				@submit="loading = true" />
-		</div>
 	</div>
 </template>
 
@@ -133,6 +142,7 @@ export default {
 		return {
 			loading: false,
 			user: this.username,
+			passwordlessLogin: false,
 			resetPassword: false,
 		}
 	},
