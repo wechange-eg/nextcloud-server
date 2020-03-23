@@ -48,7 +48,7 @@ class Php54 implements IAdapter {
 
 	public function getResponseCallArgs(array $originalArgs): array {
 		$linkId = $this->getLinkId($originalArgs[0]);
-		if($this->linkData[$linkId]) {
+		if(!isset($this->linkData[$linkId])) {
 			throw new \LogicException('There should be a request before the response');
 		}
 		$this->linkData[$linkId]['responseArgs'] = &$originalArgs;
