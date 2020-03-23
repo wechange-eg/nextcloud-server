@@ -1,36 +1,61 @@
 <template>
-	<p>
-		<input id="user"
-			ref="user"
-			v-model="user"
-			type="text"
-			name="user"
-			:placeholder="t('core', 'Username or email')"
-			:aria-label="t('core', 'Username or email')"
-			required>
+	<form ref="loginForm"
+		method="post"
+		name="login"
+		@submit.prevent="submit">
+		<fieldset>
+			<p class="grouptop groupbottom">
+				<input id="user"
+					ref="user"
+					v-model="user"
+					type="text"
+					name="user"
+					:autocomplete="autoCompleteAllowed ? 'on' : 'off'"
+					:placeholder="t('core', 'Username or email')"
+					:aria-label="t('core', 'Username or email')"
+					required
+					@change="$emit('update:username', user)">
+				<label for="user" class="infield">{{ t('core', 'Username or	email') }}</label>
+			</p>
 
-		<button @click="authenticate">
-			{{ t('core', 'Log in') }}
-		</button>
-
-		<input type="hidden"
-			name="requesttoken"
-			:value="OC.requestToken">
-	</p>
+			<LoginButton :loading="loading" :inverted-colors="invertedColors" @click="authenticate" />
+		</fieldset>
+	</form>
 </template>
 
 <script>
-
 import {
 	startAuthentication,
 	finishAuthentication,
 } from '../../service/WebAuthnAuthenticationService'
+import LoginButton from './LoginButton'
 
 export default {
 	name: 'PasswordLessLoginForm',
+	components: {
+		LoginButton,
+	},
+	props: {
+		username: {
+			type: String,
+			default: '',
+		},
+		redirectUrl: {
+			type: String,
+		},
+		invertedColors: {
+			type: Boolean,
+			default: false,
+		},
+		autoCompleteAllowed: {
+			type: Boolean,
+			default: true,
+		},
+	},
 	data() {
 		return {
-			user: '',
+			user: this.username,
+			loading: false,
 		}
 	},
 	methods: {
@@ -126,6 +151,9 @@ export default {
 					console.debug('GOT AN ERROR WHILE SUBMITTING CHALLENGE!')
 					console.debug(error) // Example: timeout, interaction refused...
 				})
+		},
+		submit() {
+			// noop
 		},
 	},
 }

@@ -56,6 +56,8 @@
 				<PasswordLessLoginForm
 					:username.sync="user"
 					:redirect-url="redirectUrl"
+					:inverted-colors="invertedColors"
+					:auto-complete-allowed="autoCompleteAllowed"
 					@submit="loading = true" />
 				<a @click.prevent="passwordlessLogin = false">
 					{{ t('core', 'Back') }}
