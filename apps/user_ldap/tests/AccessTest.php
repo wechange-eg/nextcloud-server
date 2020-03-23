@@ -441,7 +441,7 @@ class AccessTest extends TestCase {
 		$this->assertSame($values[0], strtolower($dnFromServer));
 	}
 
-	
+
 	public function testSetPasswordWithDisabledChanges() {
 		$this->expectException(\Exception::class);
 		$this->expectExceptionMessage('LDAP password changes are disabled');
@@ -473,7 +473,7 @@ class AccessTest extends TestCase {
 		$this->assertFalse($this->access->setPassword('CN=foo', 'MyPassword'));
 	}
 
-	
+
 	public function testSetPasswordWithRejectedChange() {
 		$this->expectException(\OC\HintException::class);
 		$this->expectExceptionMessage('Password change rejected.');
@@ -547,8 +547,8 @@ class AccessTest extends TestCase {
 		$this->ldap
 			->expects($this->any())
 			->method('isResource')
-			->willReturnCallback(function ($resource) use ($fakeConnection) {
-				return $resource === $fakeConnection;
+			->willReturnCallback(function ($resource) {
+				return is_resource($resource);
 			});
 		$this->ldap
 			->expects($this->any())
@@ -557,7 +557,7 @@ class AccessTest extends TestCase {
 		$this->ldap
 			->expects($this->once())
 			->method('search')
-			->willReturn([$fakeSearchResultResource]);
+			->willReturn($fakeSearchResultResource);
 		$this->ldap
 			->expects($this->exactly(count($base)))
 			->method('getEntries')
@@ -573,8 +573,8 @@ class AccessTest extends TestCase {
 		$filter = 'objectClass=nextcloudUser';
 		$base = ['ou=zombies,dc=foobar,dc=nextcloud,dc=com'];
 
-		$fakeConnection = new \stdClass();
-		$fakeSearchResultResource = new \stdClass();
+		$fakeConnection = ldap_connect();
+		$fakeSearchResultResource = ldap_connect();
 		$fakeLdapEntries = [
 			'count' => 2,
 			[
@@ -600,8 +600,8 @@ class AccessTest extends TestCase {
 		$base = ['ou=zombies,dc=foobar,dc=nextcloud,dc=com'];
 		$attrs = ['dn', 'uid'];
 
-		$fakeConnection = new \stdClass();
-		$fakeSearchResultResource = new \stdClass();
+		$fakeConnection = ldap_connect();
+		$fakeSearchResultResource = ldap_connect();
 		$fakeLdapEntries = [
 			'count' => 2,
 			[

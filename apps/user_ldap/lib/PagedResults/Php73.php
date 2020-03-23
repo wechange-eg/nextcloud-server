@@ -143,6 +143,10 @@ class Php73 implements IAdapter {
 	}
 
 	protected function preparePagesResultsArgs(int $linkId, string $methodKey): void {
+		if(!isset($this->linkData[$linkId]['requestArgs'])) {
+			return;
+		}
+
 		$serverControls = [[
 			'oid' => LDAP_CONTROL_PAGEDRESULTS,
 			'value' => [
