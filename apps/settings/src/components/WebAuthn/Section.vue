@@ -31,23 +31,29 @@
 		<p v-else>
 			{{ t('twofactor_u2f', 'The following devices are configured for your account:') }}
 		</p>
-		<Device v-for="device in devices"
+		<Device v-for="device in sortedDevices"
 			:key="device.id"
-			:name="device.name" />
+			:name="device.name"
+			@delete="deleteDevice(device.id)" />
 
 		<p v-if="notSupported" class="warning">
 			{{ t('settings', 'Your browser does not support Webauthn.') }}
 		</p>
 
-		<AddDevice v-if="!notSupported" />
+		<AddDevice v-if="!notSupported" @added="deviceAdded" />
 	</div>
 </template>
 
 <script>
+import confirmPassword from 'nextcloud-password-confirmation'
+import sortBy from 'lodash/fp/sortBy'
+
 import AddDevice from './AddDevice'
 import Device from './Device'
-// import axios from '@nextcloud/axios'
-// import confirmPassword from 'nextcloud-password-confirmation'
+import logger from '../../logger'
+import { removeRegistration } from '../../service/WebAuthnRegistrationSerice'
+
+const sortByName = sortBy('name')
 
 export default {
 	components: {
@@ -55,15 +61,38 @@ export default {
 		Device,
 	},
 	props: {
-		devices: {
+		initialDevices: {
 			type: Array,
 			required: true,
 		},
 	},
 	data() {
 		return {
+			devices: this.initialDevices,
 			notSupported: typeof (PublicKeyCredential) === 'undefined',
 		}
+	},
+	computed: {
+		sortedDevices() {
+			return sortByName(this.devices)
+		},
+	},
+	methods: {
+		deviceAdded(device) {
+			logger.debug(`adding new device to the list ${device.id}`)
+
+			this.devices.push(device)
+		},
+		async deleteDevice(id) {
+			logger.info(`deleting webauthn device ${id}`)
+
+			await confirmPassword()
+			await removeRegistration(id)
+
+			this.devices = this.devices.filter(d => d.id !== id)
+
+			logger.info(`webauthn device ${id} removed successfully`)
+		},
 	},
 }
 </script>

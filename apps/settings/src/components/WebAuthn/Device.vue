@@ -23,15 +23,28 @@
 	<div class="webauthn-device">
 		<span class="icon-webauthn-device" />
 		{{ name || t('settings', 'Unnamed device') }}
+		<Actions :force-menu="true">
+			<ActionButton icon="icon-delete" @click="$emit('delete')">
+				{{ t('settings', 'Delete') }}
+			</ActionButton>
+		</Actions>
 	</div>
 </template>
 
 <script>
+import Actions from '@nextcloud/vue/dist/Components/Actions'
+import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+
 export default {
 	name: 'Device',
+	components: {
+		ActionButton,
+		Actions,
+	},
 	props: {
 		name: {
 			type: String,
+			required: true,
 		},
 	},
 }

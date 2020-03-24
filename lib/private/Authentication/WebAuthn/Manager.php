@@ -30,6 +30,7 @@ use Cose\Algorithms;
 use GuzzleHttp\Psr7\ServerRequest;
 use OC\Authentication\WebAuthn\Db\PublicKeyCredentialEntity;
 use OC\Authentication\WebAuthn\Db\PublicKeyCredentialMapper;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\ILogger;
 use OCP\IUser;
 use Webauthn\AttestationStatement\AttestationObjectLoader;
@@ -113,7 +114,7 @@ class Manager {
 		);
 	}
 
-	public function finishRegister(PublicKeyCredentialCreationOptions $publicKeyCredentialCreationOptions, string $name, string $data): bool {
+	public function finishRegister(PublicKeyCredentialCreationOptions $publicKeyCredentialCreationOptions, string $name, string $data): PublicKeyCredentialEntity {
 		$tokenBindingHandler = new TokenBindingNotSupportedHandler();
 
 		$attestationStatementSupportManager = new AttestationStatementSupportManager();
@@ -155,9 +156,7 @@ class Manager {
 		}
 
 		// Persist the data
-		$this->repository->saveCredentialSource($publicKeyCredentialSource, $name);
-
-		return true;
+		return $this->repository->saveAndReturnCredentialSource($publicKeyCredentialSource, $name);
 	}
 
 	private function stripPort(string $serverHost): string {
@@ -233,6 +232,17 @@ class Manager {
 
 
 		return true;
-
 	}
+
+	public function deleteRegistration(IUser $user, int $id): void {
+		try {
+			$entry = $this->credentialMapper->findById($user->getUID(), $id);
+		} catch (DoesNotExistException $e) {
+			$this->logger->warning("WebAuthn device $id does not exist, can't delete it");
+			return;
+		}
+
+		$this->credentialMapper->delete($entry);
+	}
+
 }

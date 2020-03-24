@@ -33,6 +33,6 @@ const View = Vue.extend(WebAuthnSection)
 const devices = loadState('settings', 'webauthn-devices')
 new View({
 	propsData: {
-		devices,
+		initialDevices: devices,
 	},
 }).$mount('#security-webauthn')

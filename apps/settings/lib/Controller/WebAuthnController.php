@@ -99,4 +99,16 @@ class WebAuthnController extends Controller {
 
 		return new JSONResponse($this->manager->finishRegister($publicKeyCredentialCreationOptions, $name, $data));
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @PasswordConfirmationRequired
+	 */
+	public function deleteRegistration(int $id): JSONResponse {
+		$this->logger->debug('Finishing WebAuthn registration');
+
+		$this->manager->deleteRegistration($this->userSession->getUser(), $id);
+
+		return new JSONResponse([]);
+	}
 }

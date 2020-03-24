@@ -84,6 +84,7 @@ class PublicKeyCredentialEntity extends Entity implements JsonSerializable {
 	 */
 	public function jsonSerialize(): array {
 		return [
+			'id' => $this->getId(),
 			'name' => $this->getName(),
 		];
 	}

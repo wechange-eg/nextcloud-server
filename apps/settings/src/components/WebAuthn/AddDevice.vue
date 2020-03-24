@@ -58,13 +58,14 @@
 <script>
 import confirmPassword from 'nextcloud-password-confirmation'
 
+import logger from '../../logger'
 import {
 	startRegistration,
 	finishRegistration,
 } from '../../service/WebAuthnRegistrationSerice'
 
 const logAndPass = (text) => (data) => {
-	console.debug(text)
+	logger.debug(text)
 	return data
 }
 
@@ -169,13 +170,17 @@ export default {
 				.catch(console.error.bind(this))
 		},
 
-		saveRegistrationData() {
-			return finishRegistration(this.name, JSON.stringify(this.credential))
-				.then(logAndPass('new device added to store'))
-				.catch(err => {
-					console.error('Error persisting webauthn registration', err)
-					throw new Error(t('settings', 'Server error while trying to complete webauthn device registration'))
-				})
+		async saveRegistrationData() {
+			try {
+				const device = await finishRegistration(this.name, JSON.stringify(this.credential))
+
+				logger.info('new device added', { device })
+
+				this.$emit('added', device)
+			} catch (err) {
+				logger.error('Error persisting webauthn registration', { error: err })
+				throw new Error(t('settings', 'Server error while trying to complete webauthn device registration'))
+			}
 		},
 
 		reset() {

@@ -19,29 +19,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Axios from '@nextcloud/axios'
+import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
-export function startRegistration() {
+export async function startRegistration() {
 	const url = generateUrl('/settings/api/personal/webauthn/registration')
 
-	return Axios.get(url)
-		.then(resp => resp.data)
+	const resp = await axios.get(url)
+	return resp.data
 }
 
-export function finishRegistration(name, data) {
+export async function finishRegistration(name, data) {
 	const url = generateUrl('/settings/api/personal/webauthn/registration')
 
-	return Axios.post(url, { name, data })
-		.then(resp => resp.data)
+	const resp = await axios.post(url, { name, data })
+	return resp.data
 }
 
-export function removeRegistration(id) {
-	const url = generateUrl('/apps/twofactor_webauthn/settings/remove')
-	const data = {
-		id,
-	}
+export async function removeRegistration(id) {
+	const url = generateUrl(`/settings/api/personal/webauthn/registration/${id}`)
 
-	return Axios.post(url, data)
-		.then(resp => resp.data)
+	await axios.delete(url)
 }

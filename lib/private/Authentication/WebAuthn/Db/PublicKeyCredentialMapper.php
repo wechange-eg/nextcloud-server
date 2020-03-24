@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 /**
  * @copyright Copyright (c) 2020, Roeland Jago Douma <roeland@famdouma.nl>
  *
@@ -24,10 +26,12 @@ declare(strict_types=1);
 
 namespace OC\Authentication\WebAuthn\Db;
 
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\IDBConnection;
 
 class PublicKeyCredentialMapper extends QBMapper {
+
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'webauthn', PublicKeyCredentialEntity::class);
 	}
@@ -58,4 +62,25 @@ class PublicKeyCredentialMapper extends QBMapper {
 
 		return $this->findEntities($qb);
 	}
+
+	/**
+	 * @param string $uid
+	 * @param int $id
+	 *
+	 * @return PublicKeyCredentialEntity
+	 * @throws DoesNotExistException
+	 */
+	public function findById(string $uid, int $id): PublicKeyCredentialEntity {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->andX(
+				$qb->expr()->eq('id', $qb->createNamedParameter($id)),
+				$qb->expr()->eq('uid', $qb->createNamedParameter($uid))
+			));
+
+		return $this->findEntity($qb);
+	}
+
 }
