@@ -1690,6 +1690,11 @@ class View {
 		if (!$info) {
 			throw new NotFoundException($path . ' not found while trying to get owner');
 		}
+
+		if ($info->getOwner() === null) {
+			throw new NotFoundException($path . ' has no owner');
+		}
+
 		return $info->getOwner()->getUID();
 	}
 
@@ -1952,7 +1957,8 @@ class View {
 				// rethrow with the a human-readable path
 				throw new LockedException(
 					$this->getPathRelativeToFiles($absolutePath),
-					$e
+					$e,
+					$e->getExistingLock()
 				);
 			}
 		}
@@ -1994,12 +2000,14 @@ class View {
 					// rethrow with the a human-readable path
 					throw new LockedException(
 						$this->getPathRelativeToFiles($absolutePath),
-						$e
+						$e,
+						$e->getExistingLock()
 					);
-				} catch (\InvalidArgumentException $e) {
+				} catch (\InvalidArgumentException $ex) {
 					throw new LockedException(
 						$absolutePath,
-						$e
+						$ex,
+						$e->getExistingLock()
 					);
 				}
 			}
