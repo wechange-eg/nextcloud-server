@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OC\Authentication\WebAuthn\Db;
 
+use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 use Webauthn\PublicKeyCredentialSource;
 use Webauthn\TrustPath\TrustPathLoader;
@@ -40,7 +41,8 @@ use Webauthn\TrustPath\TrustPathLoader;
  * @method string getData();
  * @method void setData(string $data);
  */
-class PublicKeyCredentialEntity extends Entity {
+class PublicKeyCredentialEntity extends Entity implements JsonSerializable {
+
 	/** @var string */
 	protected $name;
 
@@ -76,4 +78,14 @@ class PublicKeyCredentialEntity extends Entity {
 			json_decode($this->getData(), true)
 		);
 	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function jsonSerialize(): array {
+		return [
+			'name' => $this->getName(),
+		];
+	}
+
 }

@@ -20,6 +20,7 @@
  */
 
 import Vue from 'vue'
+import { loadState } from '@nextcloud/initial-state'
 
 import WebAuthnSection from './components/WebAuthn/Section'
 
@@ -29,5 +30,9 @@ __webpack_nonce__ = btoa(OC.requestToken)
 Vue.prototype.t = t
 
 const View = Vue.extend(WebAuthnSection)
+const devices = loadState('settings', 'webauthn-devices')
 new View({
+	propsData: {
+		devices,
+	},
 }).$mount('#security-webauthn')

@@ -23,8 +23,17 @@
 	<div id="security-webauthn" class="section">
 		<h2>{{ t('settings', 'Passwordless Authentication') }}</h2>
 		<p class="settings-hint hidden-when-empty">
-			{{ t('settings', 'Setup your account for passwordless authenitcation following the FIDO2 standard.') }}
+			{{ t('settings', 'Set up your account for passwordless authentication following the FIDO2 standard.') }}
 		</p>
+		<p v-if="devices.length === 0">
+			{{ t('twofactor_u2f', 'No devices configured.') }}
+		</p>
+		<p v-else>
+			{{ t('twofactor_u2f', 'The following devices are configured for your account:') }}
+		</p>
+		<Device v-for="device in devices"
+			:key="device.id"
+			:name="device.name" />
 
 		<p v-if="notSupported" class="warning">
 			{{ t('settings', 'Your browser does not support Webauthn.') }}
@@ -36,17 +45,25 @@
 
 <script>
 import AddDevice from './AddDevice'
+import Device from './Device'
 // import axios from '@nextcloud/axios'
 // import confirmPassword from 'nextcloud-password-confirmation'
 
 export default {
+	components: {
+		AddDevice,
+		Device,
+	},
+	props: {
+		devices: {
+			type: Array,
+			required: true,
+		},
+	},
 	data() {
 		return {
 			notSupported: typeof (PublicKeyCredential) === 'undefined',
 		}
-	},
-	components: {
-		AddDevice,
 	},
 }
 </script>

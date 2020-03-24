@@ -24,11 +24,38 @@ declare(strict_types=1);
 
 namespace OCA\Settings\Settings\Personal\Security;
 
+use OC\Authentication\WebAuthn\Db\PublicKeyCredentialMapper;
+use OCA\Settings\AppInfo\Application;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\IInitialStateService;
 use OCP\Settings\ISettings;
 
 class WebAuthn implements ISettings {
+
+	/** @var PublicKeyCredentialMapper */
+	private $mapper;
+
+	/** @var string */
+	private $uid;
+
+	/** @var IInitialStateService */
+	private $initialStateService;
+
+	public function __construct(PublicKeyCredentialMapper $mapper,
+								string $UserId,
+								IInitialStateService $initialStateService) {
+		$this->mapper = $mapper;
+		$this->uid = $UserId;
+		$this->initialStateService = $initialStateService;
+	}
+
 	public function getForm() {
+		$this->initialStateService->provideInitialState(
+			Application::APP_ID,
+			'webauthn-devices',
+			$this->mapper->findAllForUid($this->uid)
+		);
+
 		return new TemplateResponse('settings', 'settings/personal/security/webauthn', [
 		]);
 	}
