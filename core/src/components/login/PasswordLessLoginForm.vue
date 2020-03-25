@@ -143,9 +143,13 @@ export default {
 		},
 		completeAuthentication(challenge) {
 			console.debug('TIME TO COMPLETE')
+
+			const location = this.redirectUrl
+
 			return finishAuthentication(JSON.stringify(challenge))
 				.then(data => {
-					console.debug(data)
+					console.debug('Logged in redirecting')
+					window.location.href = location
 				})
 				.catch(error => {
 					console.debug('GOT AN ERROR WHILE SUBMITTING CHALLENGE!')
