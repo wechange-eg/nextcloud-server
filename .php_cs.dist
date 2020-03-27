@@ -9,5 +9,11 @@ use ChristophWurst\Nextcloud\CodingStandard\Config;
 $config = new Config();
 $config
 	->getFinder()
+	->ignoreVCSIgnored(true)
+	->exclude('3rdparty')
+	->exclude('lib/composer')
+	->exclude('apps/**/3rdparty')
+	->exclude('apps/**/composer')
+	->exclude('apps/**/vendor')
 	->in(__DIR__);
 return $config;
