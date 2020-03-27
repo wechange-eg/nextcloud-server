@@ -539,7 +539,7 @@ class AccessTest extends TestCase {
 			->method('__get')
 			->willReturnCallback(function($key) use ($base) {
 				if(stripos($key, 'base') !== false) {
-					return $base;
+					return [$base];
 				}
 				return null;
 			});
@@ -571,17 +571,17 @@ class AccessTest extends TestCase {
 	public function testSearchNoPagedSearch() {
 		// scenario: no pages search, 1 search base
 		$filter = 'objectClass=nextcloudUser';
-		$base = ['ou=zombies,dc=foobar,dc=nextcloud,dc=com'];
+		$base = 'ou=zombies,dc=foobar,dc=nextcloud,dc=com';
 
 		$fakeConnection = ldap_connect();
 		$fakeSearchResultResource = ldap_connect();
 		$fakeLdapEntries = [
 			'count' => 2,
 			[
-				'dn' => 'uid=sgarth,' . $base[0],
+				'dn' => 'uid=sgarth,' . $base,
 			],
 			[
-				'dn' => 'uid=wwilson,' . $base[0],
+				'dn' => 'uid=wwilson,' . $base,
 			]
 		];
 

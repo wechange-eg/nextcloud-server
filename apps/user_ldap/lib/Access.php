@@ -1012,7 +1012,7 @@ class Access extends LDAPUtility {
 	public function searchUsers($filter, $attr = null, $limit = null, $offset = null) {
 		$result = [];
 		foreach($this->connection->ldapBaseUsers as $base) {
-			$result = array_merge($result, $this->search($filter, [$base], $attr, $limit, $offset));
+			$result = array_merge($result, $this->search($filter, $base, $attr, $limit, $offset));
 		}
 		return $result;
 	}
@@ -1049,7 +1049,7 @@ class Access extends LDAPUtility {
 	public function searchGroups($filter, $attr = null, $limit = null, $offset = null) {
 		$result = [];
 		foreach($this->connection->ldapBaseGroups as $base) {
-			$result = array_merge($result, $this->search($filter, [$base], $attr, $limit, $offset));
+			$result = array_merge($result, $this->search($filter, $base, $attr, $limit, $offset));
 		}
 		return $result;
 	}
@@ -1186,11 +1186,8 @@ class Access extends LDAPUtility {
 	 * processes an LDAP paged search operation
 	 *
 	 * @param resource $sr the array containing the LDAP search resources
-	 * @param string $filter the LDAP filter for the search
-	 * @param string $base an array containing the LDAP subtree(s) that shall be searched
 	 * @param int $foundItems number of results in the single search operation
 	 * @param int $limit maximum results to be counted
-	 * @param int $offset a starting point
 	 * @param bool $pagedSearchOK whether a paged search has been executed
 	 * @param bool $skipHandling required for paged search when cookies to
 	 * prior results need to be gained
@@ -1199,11 +1196,8 @@ class Access extends LDAPUtility {
 	 */
 	private function processPagedSearchStatus(
 		$sr,
-		string $filter,
-		string $base,
 		int $foundItems,
 		int $limit,
-		int $offset,
 		bool $pagedSearchOK,
 		bool $skipHandling
 	): bool {
@@ -1211,7 +1205,7 @@ class Access extends LDAPUtility {
 		if($pagedSearchOK) {
 			$cr = $this->connection->getConnectionResource();
 			if($this->ldap->controlPagedResultResponse($cr, $sr, $cookie)) {
-				$this->setPagedResultCookie($cookie);
+				$this->lastCookie = $cookie;
 			}
 
 			//browsing through prior pages to get the cookie for the new one
@@ -1295,8 +1289,7 @@ class Access extends LDAPUtility {
 				$count = $this->countEntriesInSearchResults($sr);
 				$counter += $count;
 
-				$hasMorePages = $this->processPagedSearchStatus($sr, $filter, $base, $count, $limitPerPage,
-					$offset, $pagedSearchOK, $skipHandling);
+				$hasMorePages = $this->processPagedSearchStatus($sr, $count, $limitPerPage, $pagedSearchOK, $skipHandling);
 				$offset += $limitPerPage;
 				/* ++ Fixing RHDS searches with pages with zero results ++
 				 * Continue now depends on $hasMorePages value
@@ -1320,23 +1313,16 @@ class Access extends LDAPUtility {
 	/**
 	 * Executes an LDAP search
 	 *
-	 * @param string $filter the LDAP filter for the search
-	 * @param array $bases an array containing the LDAP subtree(s) that shall be searched
-	 * @param string|string[] $attr optional, array, one or more attributes that shall be
-	 * @param int $limit
-	 * @param int $offset
-	 * @param bool $skipHandling
-	 * @return array with the search result
 	 * @throws ServerNotAvailableException
 	 */
 	public function search(
 		string $filter,
-		array $bases,
+		string $base,
 		?array $attr = null,
 		?int $limit = null,
 		?int $offset = null,
 		bool $skipHandling = false
-	) {
+	): array {
 		$limitPerPage = (int)$this->connection->ldapPagingSize;
 		if(!is_null($limit) && $limit < $limitPerPage && $limit > 0) {
 			$limitPerPage = $limit;
@@ -1355,35 +1341,31 @@ class Access extends LDAPUtility {
 		$findings = [];
 		$savedoffset = $offset;
 		$iFoundItems = 0;
-		foreach ($bases as $base) {
-			do {
-				$search = $this->executeSearch($filter, $base, $attr, $limitPerPage, $offset);
-				if($search === false) {
-					return [];
-				}
-				list($sr, $pagedSearchOK) = $search;
-				$cr = $this->connection->getConnectionResource();
 
-				if($skipHandling) {
-					//i.e. result do not need to be fetched, we just need the cookie
-					//thus pass 1 or any other value as $iFoundItems because it is not
-					//used
-					$this->processPagedSearchStatus($sr, $filter, $base, 1, $limitPerPage,
-						$offset, $pagedSearchOK,
-						$skipHandling);
+		do {
+			$search = $this->executeSearch($filter, $base, $attr, $limitPerPage, $offset);
+			if($search === false) {
 				return [];
-				}
+			}
+			list($sr, $pagedSearchOK) = $search;
+			$cr = $this->connection->getConnectionResource();
 
-				$findings = array_merge($findings, $this->invokeLDAPMethod('getEntries', $cr, $sr));
-				$iFoundItems = max($iFoundItems, $findings['count']);
-				unset($findings['count']);
+			if($skipHandling) {
+				//i.e. result do not need to be fetched, we just need the cookie
+				//thus pass 1 or any other value as $iFoundItems because it is not
+				//used
+				$this->processPagedSearchStatus($sr, 1, $limitPerPage, $pagedSearchOK, $skipHandling);
+				return [];
+			}
 
-				$continue = $this->processPagedSearchStatus($sr, $filter, $base, $iFoundItems,
-					$limitPerPage, (int)$offset, $pagedSearchOK,
-					$skipHandling);
-				$offset += $limitPerPage;
-			} while ($continue && $pagedSearchOK && ($limit === null || count($findings) < $limit));
-		}
+			$findings = array_merge($findings, $this->invokeLDAPMethod('getEntries', $cr, $sr));
+			$iFoundItems = max($iFoundItems, $findings['count']);
+			unset($findings['count']);
+
+			$continue = $this->processPagedSearchStatus($sr, $iFoundItems, $limitPerPage, $pagedSearchOK, $skipHandling);
+			$offset += $limitPerPage;
+		} while ($continue && $pagedSearchOK && ($limit === null || count($findings) < $limit));
+
 		// resetting offset
 		$offset = $savedoffset;
 
@@ -1675,17 +1657,22 @@ class Access extends LDAPUtility {
 	public function getUserDnByUuid($uuid) {
 		$uuidOverride = $this->connection->ldapExpertUUIDUserAttr;
 		$filter       = $this->connection->ldapUserFilter;
-		$base         = $this->connection->ldapBaseUsers;
+		$bases        = $this->connection->ldapBaseUsers;
 
 		if ($this->connection->ldapUuidUserAttribute === 'auto' && $uuidOverride === '') {
 			// Sacrebleu! The UUID attribute is unknown :( We need first an
 			// existing DN to be able to reliably detect it.
-			$result = $this->search($filter, $base, ['dn'], 1);
-			if(!isset($result[0]) || !isset($result[0]['dn'])) {
-				throw new \Exception('Cannot determine UUID attribute');
+			foreach ($bases as $base) {
+				$result = $this->search($filter, $base, ['dn'], 1);
+				if (!isset($result[0]) || !isset($result[0]['dn'])) {
+					continue;
+				}
+				$dn = $result[0]['dn'][0];
+				if ($hasFound = $this->detectUuidAttribute($dn, true)) {
+					break;
+				}
 			}
-			$dn = $result[0]['dn'][0];
-			if(!$this->detectUuidAttribute($dn, true)) {
+			if(!isset($hasFound) || !$hasFound) {
 				throw new \Exception('Cannot determine UUID attribute');
 			}
 		} else {
@@ -1983,13 +1970,6 @@ class Access extends LDAPUtility {
 		$this->lastCookie = '';
 	}
 
-	private function getPagedResultCookie(int $offset): string {
-		if($offset === 0) {
-			return '';
-		}
-		return $this->lastCookie;
-	}
-
 	/**
 	 * checks whether an LDAP paged search operation has more pages that can be
 	 * retrieved, typically when offset and limit are provided.
@@ -2008,13 +1988,6 @@ class Access extends LDAPUtility {
 		}
 
 		return true;
-	}
-
-	private function setPagedResultCookie(string $cookie): void {
-		// allow '0' for 389ds
-		if(!empty($cookie) || $cookie === '0') {
-			$this->lastCookie = $cookie;
-		}
 	}
 
 	/**
@@ -2047,7 +2020,6 @@ class Access extends LDAPUtility {
 	): bool {
 		$pagedSearchOK = false;
 		if ($limit !== 0) {
-			$offset = (int)$offset; //can be null
 			\OC::$server->getLogger()->debug(
 				'initializing paged search for filter {filter}, base {base}, attr {attr}, limit {limit}, offset {offset}',
 				[
@@ -2061,22 +2033,14 @@ class Access extends LDAPUtility {
 			);
 
 			//get the cookie from the search for the previous search, required by LDAP
-			$cookie = $this->getPagedResultCookie($offset);
-			if(empty($cookie) && $cookie !== "0" && ($offset > 0)) {
+			if(empty($this->lastCookie) && $this->lastCookie !== "0" && ($offset > 0)) {
 				// no cookie known from a potential previous search. We need
 				// to start from 0 to come to the desired page. cookie value
 				// of '0' is valid, because 389ds
 				$reOffset = ($offset - $limit) < 0 ? 0 : $offset - $limit;
-				$this->search($filter, [$base], $attr, $limit, $reOffset, true);
-				$cookie = $this->getPagedResultCookie($offset);
-				//still no cookie? obviously, the server does not like us. Let's skip paging efforts.
-				// '0' is valid, because 389ds
-				//TODO: remember this, probably does not change in the next request...
-				if(empty($cookie) && $cookie !== '0') {
-					$cookie = null;
-				}
+				$this->search($filter, $base, $attr, $limit, $reOffset, true);
 			}
-			if(!is_null($cookie)) {
+			if($this->lastCookie !== '') {
 				//since offset = 0, this is a new search. We abandon other searches that might be ongoing.
 				$this->abandonPagedSearch();
 				$pagedSearchOK = true === $this->invokeLDAPMethod('controlPagedResult',
