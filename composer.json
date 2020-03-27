@@ -19,6 +19,7 @@
         "christophwurst/nextcloud-coding-standard": "^0.0.1"
     },
   "scripts": {
+    "fix-cs": "php-cs-fixer fix",
     "lint": "find . -name \\*.php -not -path './lib/composer/*' -exec php -l \"{}\" \\;"
   }
 }
