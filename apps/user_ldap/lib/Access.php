@@ -1964,6 +1964,9 @@ class Access extends LDAPUtility {
 	 * @throws ServerNotAvailableException
 	 */
 	private function abandonPagedSearch() {
+		if($this->lastCookie === '') {
+			return;
+		}
 		$cr = $this->connection->getConnectionResource();
 		$this->invokeLDAPMethod('controlPagedResult', $cr, 0, false);
 		$this->getPagedSearchResultState();

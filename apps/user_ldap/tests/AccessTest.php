@@ -559,7 +559,7 @@ class AccessTest extends TestCase {
 			->method('search')
 			->willReturn($fakeSearchResultResource);
 		$this->ldap
-			->expects($this->exactly(count($base)))
+			->expects($this->exactly(1))
 			->method('getEntries')
 			->willReturn($fakeLdapEntries);
 
@@ -597,7 +597,7 @@ class AccessTest extends TestCase {
 
 	public function testFetchListOfUsers() {
 		$filter = 'objectClass=nextcloudUser';
-		$base = ['ou=zombies,dc=foobar,dc=nextcloud,dc=com'];
+		$base = 'ou=zombies,dc=foobar,dc=nextcloud,dc=com';
 		$attrs = ['dn', 'uid'];
 
 		$fakeConnection = ldap_connect();
@@ -605,11 +605,11 @@ class AccessTest extends TestCase {
 		$fakeLdapEntries = [
 			'count' => 2,
 			[
-				'dn' => 'uid=sgarth,' . $base[0],
+				'dn' => 'uid=sgarth,' . $base,
 				'uid' => [ 'sgarth' ],
 			],
 			[
-				'dn' => 'uid=wwilson,' . $base[0],
+				'dn' => 'uid=wwilson,' . $base,
 				'uid' => [ 'wwilson' ],
 			]
 		];
