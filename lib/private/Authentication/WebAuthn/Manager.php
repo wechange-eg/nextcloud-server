@@ -31,6 +31,7 @@ use GuzzleHttp\Psr7\ServerRequest;
 use OC\Authentication\WebAuthn\Db\PublicKeyCredentialEntity;
 use OC\Authentication\WebAuthn\Db\PublicKeyCredentialMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\IConfig;
 use OCP\ILogger;
 use OCP\IUser;
 use Webauthn\AttestationStatement\AttestationObjectLoader;
@@ -63,14 +64,19 @@ class Manager {
 	/** @var ILogger */
 	private $logger;
 
+	/** @var IConfig */
+	private $config;
+
 	public function __construct(
 		CredentialRepository $repository,
 		PublicKeyCredentialMapper $credentialMapper,
-		ILogger $logger
+		ILogger $logger,
+		IConfig $config
 	) {
 		$this->repository = $repository;
 		$this->credentialMapper = $credentialMapper;
 		$this->logger = $logger;
+		$this->config = $config;
 	}
 
 	public function startRegistration(IUser $user, string $serverHost): PublicKeyCredentialCreationOptions {
@@ -245,4 +251,19 @@ class Manager {
 		$this->credentialMapper->delete($entry);
 	}
 
+	public function isWebAuthnAvailable(): bool {
+		if (!extension_loaded('bcmath')) {
+			return false;
+		}
+
+		if (!extension_loaded('gmp')) {
+			return false;
+		}
+
+		if (!$this->config->getSystemValueBool('auth.webauthn.enabled', true)) {
+			return false;
+		}
+
+		return false;
+	}
 }

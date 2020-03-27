@@ -34,6 +34,7 @@ namespace OC\Core\Controller;
 use OC\AppFramework\Http\Request;
 use OC\Authentication\Login\Chain;
 use OC\Authentication\Login\LoginData;
+use OC\Authentication\WebAuthn\Manager as WebAuthnManager;
 use OC\Security\Bruteforce\Throttler;
 use OC\User\Session;
 use OC_App;
@@ -80,6 +81,8 @@ class LoginController extends Controller {
 	private $loginChain;
 	/** @var IInitialStateService */
 	private $initialStateService;
+	/** @var WebAuthnManager */
+	private $webAuthnManager;
 
 	public function __construct(?string $appName,
 								IRequest $request,
@@ -92,7 +95,8 @@ class LoginController extends Controller {
 								Defaults $defaults,
 								Throttler $throttler,
 								Chain $loginChain,
-								IInitialStateService $initialStateService) {
+								IInitialStateService $initialStateService,
+								WebAuthnManager $webAuthnManager) {
 		parent::__construct($appName, $request);
 		$this->userManager = $userManager;
 		$this->config = $config;
@@ -104,6 +108,7 @@ class LoginController extends Controller {
 		$this->throttler = $throttler;
 		$this->loginChain = $loginChain;
 		$this->initialStateService = $initialStateService;
+		$this->webAuthnManager = $webAuthnManager;
 	}
 
 	/**
@@ -178,6 +183,8 @@ class LoginController extends Controller {
 			'loginThrottleDelay',
 			$this->throttler->getDelay($this->request->getRemoteAddress())
 		);
+
+		$this->initialStateService->provideInitialState('core', 'webauthn-available', $this->webAuthnManager->isWebAuthnAvailable());
 
 		$this->setPasswordResetInitialState($user);
 
