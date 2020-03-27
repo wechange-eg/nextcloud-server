@@ -10,12 +10,10 @@ $config = new Config();
 $config
 	->getFinder()
 	->ignoreVCSIgnored(true)
-	->exclude('3rdparty')
-	->exclude('apps/**/3rdparty')
-	->exclude('apps/**/composer')
-	->exclude('apps/**/vendor')
 	->exclude('config')
 	->exclude('data')
-	->exclude('lib/composer')
+	->notPath('3rdparty')
+	->notPath('composer')
+	->notPath('vendor')
 	->in(__DIR__);
 return $config;
