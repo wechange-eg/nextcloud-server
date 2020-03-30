@@ -1,5 +1,5 @@
 <template>
-	<form ref="loginForm"
+	<form v-if="isHttps" ref="loginForm"
 		method="post"
 		name="login"
 		@submit.prevent="submit">
@@ -21,6 +21,9 @@
 			<LoginButton :loading="loading" :inverted-colors="invertedColors" @click="authenticate" />
 		</fieldset>
 	</form>
+	<div v-else>
+		{{ t('core', 'Passwordless authentication is only available over a secure connection')}}
+	</div>
 </template>
 
 <script>
@@ -51,6 +54,10 @@ export default {
 			type: Boolean,
 			default: true,
 		},
+		isHttps: {
+			type: Boolean,
+			default: false,
+		}
 	},
 	data() {
 		return {

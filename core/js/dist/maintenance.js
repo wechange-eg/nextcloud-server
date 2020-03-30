@@ -13844,7 +13844,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var packageJson = {
   name: "@nextcloud/event-bus",
-  version: "1.1.3",
+  version: "1.1.2",
   description: "",
   main: "dist/index.js",
   types: "dist/index.d.ts",
@@ -13865,7 +13865,7 @@ var packageJson = {
     url: "https://github.com/nextcloud/nextcloud-event-bus"
   },
   dependencies: {
-    "@types/semver": "^6.2.1",
+    "@types/semver": "^6.2.0",
     "core-js": "^3.6.2",
     semver: "^6.3.0"
   },
@@ -13876,16 +13876,18 @@ var packageJson = {
     "@babel/preset-env": "^7.6.0",
     "@babel/preset-typescript": "^7.6.0",
     "@nextcloud/browserslist-config": "^1.0.0",
-    "babel-jest": "^25.1.0",
+    "babel-jest": "^24.9.0",
     "babel-plugin-inline-json-import": "^0.3.2",
-    jest: "^25.1.0",
-    typedoc: "^0.16.7",
+    jest: "^24.9.0",
+    typedoc: "^0.15.7",
     typescript: "^3.6.3"
   },
   browserslist: ["extends @nextcloud/browserslist-config"]
 };
 
-var ProxyBus = /*#__PURE__*/function () {
+var ProxyBus =
+/*#__PURE__*/
+function () {
   function ProxyBus(bus) {
     _classCallCheck(this, ProxyBus);
 
@@ -13944,8 +13946,6 @@ __webpack_require__(/*! core-js/modules/es.array.concat */ "./node_modules/@next
 
 __webpack_require__(/*! core-js/modules/es.array.filter */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.filter.js");
 
-__webpack_require__(/*! core-js/modules/es.array.for-each */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.for-each.js");
-
 __webpack_require__(/*! core-js/modules/es.array.iterator */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.iterator.js");
 
 __webpack_require__(/*! core-js/modules/es.map */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.map.js");
@@ -13973,7 +13973,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var packageJson = {
   name: "@nextcloud/event-bus",
-  version: "1.1.3",
+  version: "1.1.2",
   description: "",
   main: "dist/index.js",
   types: "dist/index.d.ts",
@@ -13994,7 +13994,7 @@ var packageJson = {
     url: "https://github.com/nextcloud/nextcloud-event-bus"
   },
   dependencies: {
-    "@types/semver": "^6.2.1",
+    "@types/semver": "^6.2.0",
     "core-js": "^3.6.2",
     semver: "^6.3.0"
   },
@@ -14005,16 +14005,18 @@ var packageJson = {
     "@babel/preset-env": "^7.6.0",
     "@babel/preset-typescript": "^7.6.0",
     "@nextcloud/browserslist-config": "^1.0.0",
-    "babel-jest": "^25.1.0",
+    "babel-jest": "^24.9.0",
     "babel-plugin-inline-json-import": "^0.3.2",
-    jest: "^25.1.0",
-    typedoc: "^0.16.7",
+    jest: "^24.9.0",
+    typedoc: "^0.15.7",
     typescript: "^3.6.3"
   },
   browserslist: ["extends @nextcloud/browserslist-config"]
 };
 
-var SimpleBus = /*#__PURE__*/function () {
+var SimpleBus =
+/*#__PURE__*/
+function () {
   function SimpleBus() {
     _classCallCheck(this, SimpleBus);
 
@@ -17003,27 +17005,6 @@ $({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT || !USES_TO_LENGT
   filter: function filter(callbackfn /* , thisArg */) {
     return $filter(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
-});
-
-
-/***/ }),
-
-/***/ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.for-each.js":
-/*!*********************************************************************************************!*\
-  !*** ./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.for-each.js ***!
-  \*********************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var $ = __webpack_require__(/*! ../internals/export */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/internals/export.js");
-var forEach = __webpack_require__(/*! ../internals/array-for-each */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/internals/array-for-each.js");
-
-// `Array.prototype.forEach` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.foreach
-$({ target: 'Array', proto: true, forced: [].forEach != forEach }, {
-  forEach: forEach
 });
 
 

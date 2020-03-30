@@ -7118,7 +7118,9 @@ new View({
     autoCompleteAllowed: fromStateOr('loginAutocomplete', true),
     resetPasswordTarget: fromStateOr('resetPasswordTarget', ''),
     resetPasswordUser: fromStateOr('resetPasswordUser', ''),
-    directLogin: query.direct === '1'
+    directLogin: query.direct === '1',
+    hasPasswordless: fromStateOr('webauthn-available', false),
+    isHttps: window.location.protocol === 'https:'
   }
 }).$mount('#login');
 
@@ -14442,7 +14444,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var packageJson = {
   name: "@nextcloud/event-bus",
-  version: "1.1.3",
+  version: "1.1.2",
   description: "",
   main: "dist/index.js",
   types: "dist/index.d.ts",
@@ -14463,7 +14465,7 @@ var packageJson = {
     url: "https://github.com/nextcloud/nextcloud-event-bus"
   },
   dependencies: {
-    "@types/semver": "^6.2.1",
+    "@types/semver": "^6.2.0",
     "core-js": "^3.6.2",
     semver: "^6.3.0"
   },
@@ -14474,16 +14476,18 @@ var packageJson = {
     "@babel/preset-env": "^7.6.0",
     "@babel/preset-typescript": "^7.6.0",
     "@nextcloud/browserslist-config": "^1.0.0",
-    "babel-jest": "^25.1.0",
+    "babel-jest": "^24.9.0",
     "babel-plugin-inline-json-import": "^0.3.2",
-    jest: "^25.1.0",
-    typedoc: "^0.16.7",
+    jest: "^24.9.0",
+    typedoc: "^0.15.7",
     typescript: "^3.6.3"
   },
   browserslist: ["extends @nextcloud/browserslist-config"]
 };
 
-var ProxyBus = /*#__PURE__*/function () {
+var ProxyBus =
+/*#__PURE__*/
+function () {
   function ProxyBus(bus) {
     _classCallCheck(this, ProxyBus);
 
@@ -14542,8 +14546,6 @@ __webpack_require__(/*! core-js/modules/es.array.concat */ "./node_modules/@next
 
 __webpack_require__(/*! core-js/modules/es.array.filter */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.filter.js");
 
-__webpack_require__(/*! core-js/modules/es.array.for-each */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.for-each.js");
-
 __webpack_require__(/*! core-js/modules/es.array.iterator */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.iterator.js");
 
 __webpack_require__(/*! core-js/modules/es.map */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.map.js");
@@ -14571,7 +14573,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var packageJson = {
   name: "@nextcloud/event-bus",
-  version: "1.1.3",
+  version: "1.1.2",
   description: "",
   main: "dist/index.js",
   types: "dist/index.d.ts",
@@ -14592,7 +14594,7 @@ var packageJson = {
     url: "https://github.com/nextcloud/nextcloud-event-bus"
   },
   dependencies: {
-    "@types/semver": "^6.2.1",
+    "@types/semver": "^6.2.0",
     "core-js": "^3.6.2",
     semver: "^6.3.0"
   },
@@ -14603,16 +14605,18 @@ var packageJson = {
     "@babel/preset-env": "^7.6.0",
     "@babel/preset-typescript": "^7.6.0",
     "@nextcloud/browserslist-config": "^1.0.0",
-    "babel-jest": "^25.1.0",
+    "babel-jest": "^24.9.0",
     "babel-plugin-inline-json-import": "^0.3.2",
-    jest: "^25.1.0",
-    typedoc: "^0.16.7",
+    jest: "^24.9.0",
+    typedoc: "^0.15.7",
     typescript: "^3.6.3"
   },
   browserslist: ["extends @nextcloud/browserslist-config"]
 };
 
-var SimpleBus = /*#__PURE__*/function () {
+var SimpleBus =
+/*#__PURE__*/
+function () {
   function SimpleBus() {
     _classCallCheck(this, SimpleBus);
 
@@ -17606,27 +17610,6 @@ $({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT || !USES_TO_LENGT
 
 /***/ }),
 
-/***/ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.for-each.js":
-/*!*********************************************************************************************!*\
-  !*** ./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.for-each.js ***!
-  \*********************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var $ = __webpack_require__(/*! ../internals/export */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/internals/export.js");
-var forEach = __webpack_require__(/*! ../internals/array-for-each */ "./node_modules/@nextcloud/event-bus/node_modules/core-js/internals/array-for-each.js");
-
-// `Array.prototype.forEach` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.foreach
-$({ target: 'Array', proto: true, forced: [].forEach != forEach }, {
-  forEach: forEach
-});
-
-
-/***/ }),
-
 /***/ "./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.iterator.js":
 /*!*********************************************************************************************!*\
   !*** ./node_modules/@nextcloud/event-bus/node_modules/core-js/modules/es.array.iterator.js ***!
@@ -19561,7 +19544,7 @@ module.exports = {
 
 var fails = __webpack_require__(/*! ../internals/fails */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/fails.js");
 var wellKnownSymbol = __webpack_require__(/*! ../internals/well-known-symbol */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/well-known-symbol.js");
-var V8_VERSION = __webpack_require__(/*! ../internals/engine-v8-version */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/engine-v8-version.js");
+var V8_VERSION = __webpack_require__(/*! ../internals/v8-version */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/v8-version.js");
 
 var SPECIES = wellKnownSymbol('species');
 
@@ -19727,7 +19710,7 @@ var fails = __webpack_require__(/*! ../internals/fails */ "./node_modules/@nextc
 
 // Thank's IE8 for his funny defineProperty
 module.exports = !fails(function () {
-  return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] != 7;
+  return Object.defineProperty({}, 'a', { get: function () { return 7; } }).a != 7;
 });
 
 
@@ -19750,51 +19733,6 @@ var EXISTS = isObject(document) && isObject(document.createElement);
 module.exports = function (it) {
   return EXISTS ? document.createElement(it) : {};
 };
-
-
-/***/ }),
-
-/***/ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/engine-user-agent.js":
-/*!***************************************************************************************************!*\
-  !*** ./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/engine-user-agent.js ***!
-  \***************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getBuiltIn = __webpack_require__(/*! ../internals/get-built-in */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/get-built-in.js");
-
-module.exports = getBuiltIn('navigator', 'userAgent') || '';
-
-
-/***/ }),
-
-/***/ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/engine-v8-version.js":
-/*!***************************************************************************************************!*\
-  !*** ./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/engine-v8-version.js ***!
-  \***************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var global = __webpack_require__(/*! ../internals/global */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/global.js");
-var userAgent = __webpack_require__(/*! ../internals/engine-user-agent */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/engine-user-agent.js");
-
-var process = global.process;
-var versions = process && process.versions;
-var v8 = versions && versions.v8;
-var match, version;
-
-if (v8) {
-  match = v8.split('.');
-  version = match[0] + match[1];
-} else if (userAgent) {
-  match = userAgent.match(/Edge\/(\d+)/);
-  if (!match || match[1] >= 74) {
-    match = userAgent.match(/Chrome\/(\d+)/);
-    if (match) version = match[1];
-  }
-}
-
-module.exports = version && +version;
 
 
 /***/ }),
@@ -20546,9 +20484,9 @@ var store = __webpack_require__(/*! ../internals/shared-store */ "./node_modules
 (module.exports = function (key, value) {
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.6.4',
+  version: '3.6.1',
   mode: IS_PURE ? 'pure' : 'global',
-  copyright: '© 2020 Denis Pushkarev (zloirock.ru)'
+  copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
 
 
@@ -20712,6 +20650,51 @@ module.exports = NATIVE_SYMBOL
 
 /***/ }),
 
+/***/ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/user-agent.js":
+/*!********************************************************************************************!*\
+  !*** ./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/user-agent.js ***!
+  \********************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var getBuiltIn = __webpack_require__(/*! ../internals/get-built-in */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/get-built-in.js");
+
+module.exports = getBuiltIn('navigator', 'userAgent') || '';
+
+
+/***/ }),
+
+/***/ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/v8-version.js":
+/*!********************************************************************************************!*\
+  !*** ./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/v8-version.js ***!
+  \********************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var global = __webpack_require__(/*! ../internals/global */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/global.js");
+var userAgent = __webpack_require__(/*! ../internals/user-agent */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/user-agent.js");
+
+var process = global.process;
+var versions = process && process.versions;
+var v8 = versions && versions.v8;
+var match, version;
+
+if (v8) {
+  match = v8.split('.');
+  version = match[0] + match[1];
+} else if (userAgent) {
+  match = userAgent.match(/Edge\/(\d+)/);
+  if (!match || match[1] >= 74) {
+    match = userAgent.match(/Chrome\/(\d+)/);
+    if (match) version = match[1];
+  }
+}
+
+module.exports = version && +version;
+
+
+/***/ }),
+
 /***/ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/well-known-symbol.js":
 /*!***************************************************************************************************!*\
   !*** ./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/well-known-symbol.js ***!
@@ -20759,7 +20742,7 @@ var createProperty = __webpack_require__(/*! ../internals/create-property */ "./
 var arraySpeciesCreate = __webpack_require__(/*! ../internals/array-species-create */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/array-species-create.js");
 var arrayMethodHasSpeciesSupport = __webpack_require__(/*! ../internals/array-method-has-species-support */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/array-method-has-species-support.js");
 var wellKnownSymbol = __webpack_require__(/*! ../internals/well-known-symbol */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/well-known-symbol.js");
-var V8_VERSION = __webpack_require__(/*! ../internals/engine-v8-version */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/engine-v8-version.js");
+var V8_VERSION = __webpack_require__(/*! ../internals/v8-version */ "./node_modules/@nextcloud/initial-state/node_modules/core-js/internals/v8-version.js");
 
 var IS_CONCAT_SPREADABLE = wellKnownSymbol('isConcatSpreadable');
 var MAX_SAFE_INTEGER = 0x1FFFFFFFFFFFFF;
@@ -25623,6 +25606,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -25645,6 +25631,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     autoCompleteAllowed: {
       type: Boolean,
       default: true
+    },
+    isHttps: {
+      type: Boolean,
+      default: false
     }
   },
   data: function data() {
@@ -26202,6 +26192,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 
 
 
@@ -26256,6 +26247,14 @@ __webpack_require__.r(__webpack_exports__);
       default: true
     },
     directLogin: {
+      type: Boolean,
+      default: false
+    },
+    hasPasswordless: {
+      type: Boolean,
+      default: false
+    },
+    isHttps: {
       type: Boolean,
       default: false
     }
@@ -61786,73 +61785,88 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "form",
-    {
-      ref: "loginForm",
-      attrs: { method: "post", name: "login" },
-      on: {
-        submit: function($event) {
-          $event.preventDefault()
-          return _vm.submit($event)
-        }
-      }
-    },
-    [
-      _c(
-        "fieldset",
+  return _vm.isHttps
+    ? _c(
+        "form",
+        {
+          ref: "loginForm",
+          attrs: { method: "post", name: "login" },
+          on: {
+            submit: function($event) {
+              $event.preventDefault()
+              return _vm.submit($event)
+            }
+          }
+        },
         [
-          _c("p", { staticClass: "grouptop groupbottom" }, [
-            _c("input", {
-              directives: [
-                {
-                  name: "model",
-                  rawName: "v-model",
-                  value: _vm.user,
-                  expression: "user"
-                }
-              ],
-              ref: "user",
-              attrs: {
-                id: "user",
-                type: "text",
-                name: "user",
-                autocomplete: _vm.autoCompleteAllowed ? "on" : "off",
-                placeholder: _vm.t("core", "Username or email"),
-                "aria-label": _vm.t("core", "Username or email"),
-                required: ""
-              },
-              domProps: { value: _vm.user },
-              on: {
-                change: function($event) {
-                  return _vm.$emit("update:username", _vm.user)
-                },
-                input: function($event) {
-                  if ($event.target.composing) {
-                    return
+          _c(
+            "fieldset",
+            [
+              _c("p", { staticClass: "grouptop groupbottom" }, [
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.user,
+                      expression: "user"
+                    }
+                  ],
+                  ref: "user",
+                  attrs: {
+                    id: "user",
+                    type: "text",
+                    name: "user",
+                    autocomplete: _vm.autoCompleteAllowed ? "on" : "off",
+                    placeholder: _vm.t("core", "Username or email"),
+                    "aria-label": _vm.t("core", "Username or email"),
+                    required: ""
+                  },
+                  domProps: { value: _vm.user },
+                  on: {
+                    change: function($event) {
+                      return _vm.$emit("update:username", _vm.user)
+                    },
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.user = $event.target.value
+                    }
                   }
-                  _vm.user = $event.target.value
-                }
-              }
-            }),
-            _vm._v(" "),
-            _c("label", { staticClass: "infield", attrs: { for: "user" } }, [
-              _vm._v(_vm._s(_vm.t("core", "Username or	email")))
-            ])
-          ]),
-          _vm._v(" "),
-          _c("LoginButton", {
-            attrs: {
-              loading: _vm.loading,
-              "inverted-colors": _vm.invertedColors
-            },
-            on: { click: _vm.authenticate }
-          })
-        ],
-        1
+                }),
+                _vm._v(" "),
+                _c(
+                  "label",
+                  { staticClass: "infield", attrs: { for: "user" } },
+                  [_vm._v(_vm._s(_vm.t("core", "Username or	email")))]
+                )
+              ]),
+              _vm._v(" "),
+              _c("LoginButton", {
+                attrs: {
+                  loading: _vm.loading,
+                  "inverted-colors": _vm.invertedColors
+                },
+                on: { click: _vm.authenticate }
+              })
+            ],
+            1
+          )
+        ]
       )
-    ]
-  )
+    : _c("div", [
+        _vm._v(
+          "\n\t" +
+            _vm._s(
+              _vm.t(
+                "core",
+                "Passwordless authentication is only available over a secure connection"
+              )
+            ) +
+            "\n"
+        )
+      ])
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -62267,24 +62281,26 @@ var render = function() {
                 _vm._v(" "),
                 _c("br"),
                 _vm._v(" "),
-                _c(
-                  "a",
-                  {
-                    on: {
-                      click: function($event) {
-                        $event.preventDefault()
-                        _vm.passwordlessLogin = true
-                      }
-                    }
-                  },
-                  [
-                    _vm._v(
-                      "\n\t\t\t\t" +
-                        _vm._s(_vm.t("core", "Log in with a device")) +
-                        "\n\t\t\t"
+                _vm.hasPasswordless
+                  ? _c(
+                      "a",
+                      {
+                        on: {
+                          click: function($event) {
+                            $event.preventDefault()
+                            _vm.passwordlessLogin = true
+                          }
+                        }
+                      },
+                      [
+                        _vm._v(
+                          "\n\t\t\t\t" +
+                            _vm._s(_vm.t("core", "Log in with a device")) +
+                            "\n\t\t\t"
+                        )
+                      ]
                     )
-                  ]
-                )
+                  : _vm._e()
               ],
               1
             )
@@ -62298,7 +62314,8 @@ var render = function() {
                     username: _vm.user,
                     "redirect-url": _vm.redirectUrl,
                     "inverted-colors": _vm.invertedColors,
-                    "auto-complete-allowed": _vm.autoCompleteAllowed
+                    "auto-complete-allowed": _vm.autoCompleteAllowed,
+                    isHttps: _vm.isHttps
                   },
                   on: {
                     "update:username": function($event) {

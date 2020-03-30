@@ -46,7 +46,7 @@
 					{{ t('core', 'Forgot password?') }}
 				</a>
 				<br>
-				<a @click.prevent="passwordlessLogin = true">
+				<a v-if="hasPasswordless" @click.prevent="passwordlessLogin = true">
 					{{ t('core', 'Log in with a device') }}
 				</a>
 			</div>
@@ -58,6 +58,7 @@
 					:redirect-url="redirectUrl"
 					:inverted-colors="invertedColors"
 					:auto-complete-allowed="autoCompleteAllowed"
+					:isHttps="isHttps"
 					@submit="loading = true" />
 				<a @click.prevent="passwordlessLogin = false">
 					{{ t('core', 'Back') }}
@@ -139,6 +140,14 @@ export default {
 			type: Boolean,
 			default: false,
 		},
+		hasPasswordless: {
+			type: Boolean,
+			default: false,
+		},
+		isHttps: {
+			type: Boolean,
+			default: false,
+		}
 	},
 	data() {
 		return {
