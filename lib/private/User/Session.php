@@ -469,9 +469,13 @@ class Session implements IUserSession, Emitter {
 
 				$throttler->registerAttempt('login', $request->getRemoteAddress(), ['user' => $user]);
 
-				/** @var IEventDispatcher $eventDispatcher */
-				$eventDispatcher = \OC::$server->query(IEventDispatcher::class);
-				$eventDispatcher->dispatchTyped(new LoginFailedEvent($user));
+				$uid = $user;
+				Util::emitHook(
+					'\OCA\Files_Sharing\API\Server2Server',
+					'preLoginNameUsedAsUserName',
+					['uid' => &$uid]
+				);
+				$this->dispatcher->dispatchTyped(new LoginFailedEvent($user));
 
 				if ($currentDelay === 0) {
 					$throttler->sleepDelay($request->getRemoteAddress(), 'login');
