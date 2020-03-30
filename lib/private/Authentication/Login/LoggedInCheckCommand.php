@@ -49,12 +49,12 @@ class LoggedInCheckCommand extends ALoginCommand {
 
 	public function process(LoginData $loginData): LoginResult {
 		if ($loginData->getUser() === false) {
-			$username = $loginData->getUsername();
+			$loginName = $loginData->getUsername();
 			$ip = $loginData->getRequest()->getRemoteAddress();
 
-			$this->logger->warning("Login failed: $username (Remote IP: $ip)");
+			$this->logger->warning("Login failed: $loginName (Remote IP: $ip)");
 
-			$uid = $username;
+			$uid = $loginName;
 			Util::emitHook(
 				'\OCA\Files_Sharing\API\Server2Server',
 				'preLoginNameUsedAsUserName',
