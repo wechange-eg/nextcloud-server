@@ -264,6 +264,6 @@ class Manager {
 			return false;
 		}
 
-		return true;
+		return false;
 	}
 }

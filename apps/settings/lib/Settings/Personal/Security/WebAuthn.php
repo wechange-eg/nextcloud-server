@@ -62,17 +62,15 @@ class WebAuthn implements ISettings {
 			$this->mapper->findAllForUid($this->uid)
 		);
 
-		$this->initialStateService->provideInitialState(
-			Application::APP_ID,
-			'webauthn-available',
-			$this->manager->isWebAuthnAvailable()
-		);
-
 		return new TemplateResponse('settings', 'settings/personal/security/webauthn', [
 		]);
 	}
 
 	public function getSection(): ?string {
+		if (!$this->manager->isWebAuthnAvailable()) {
+			return null;
+		}
+
 		return 'security';
 	}
 

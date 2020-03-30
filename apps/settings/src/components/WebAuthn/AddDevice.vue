@@ -20,38 +20,43 @@
   -->
 
 <template>
-	<div v-if="step === RegistrationSteps.READY">
-		<button @click="start">
-			{{ t('settings', 'Add Webauthn device') }}
-		</button>
+	<div v-if="!https">
+		{{ t('settings', 'Passwordless authentication requires a secure connection.') }}
 	</div>
-
-	<div v-else-if="step === RegistrationSteps.REGISTRATION"
-		class="new-webauthn-device">
-		<span class="icon-loading-small webauthn-loading" />
-		{{ t('settings', 'Please authorize your WebAuthn device.') }}
-	</div>
-
-	<div v-else-if="step === RegistrationSteps.NAMING"
-		class="new-webauthn-device">
-		<span class="icon-loading-small webauthn-loading" />
-		<input v-model="name"
-			type="text"
-			:placeholder="t('settings', 'Name your device')"
-			@:keyup.enter="submit">
-		<button @click="submit">
-			{{ t('settings', 'Add') }}
-		</button>
-	</div>
-
-	<div v-else-if="step === RegistrationSteps.PERSIST"
-		class="new-webauthn-device">
-		<span class="icon-loading-small webauthn-loading" />
-		{{ t('settings', 'Adding your device …') }}
-	</div>
-
 	<div v-else>
-		Invalid registration step. This should not have happened.
+		<div v-if="step === RegistrationSteps.READY">
+			<button @click="start">
+				{{ t('settings', 'Add Webauthn device') }}
+			</button>
+		</div>
+
+		<div v-else-if="step === RegistrationSteps.REGISTRATION"
+			class="new-webauthn-device">
+			<span class="icon-loading-small webauthn-loading" />
+			{{ t('settings', 'Please authorize your WebAuthn device.') }}
+		</div>
+
+		<div v-else-if="step === RegistrationSteps.NAMING"
+			class="new-webauthn-device">
+			<span class="icon-loading-small webauthn-loading" />
+			<input v-model="name"
+				type="text"
+				:placeholder="t('settings', 'Name your device')"
+				@:keyup.enter="submit">
+			<button @click="submit">
+				{{ t('settings', 'Add') }}
+			</button>
+		</div>
+
+		<div v-else-if="step === RegistrationSteps.PERSIST"
+			class="new-webauthn-device">
+			<span class="icon-loading-small webauthn-loading" />
+			{{ t('settings', 'Adding your device …') }}
+		</div>
+
+		<div v-else>
+			Invalid registration step. This should not have happened.
+		</div>
 	</div>
 </template>
 
@@ -87,6 +92,7 @@ export default {
 			credential: {},
 			RegistrationSteps,
 			step: RegistrationSteps.READY,
+			https: window.location.protocol === 'https:',
 		}
 	},
 	methods: {
