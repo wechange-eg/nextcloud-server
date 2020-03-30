@@ -26,17 +26,32 @@ namespace OCP\Authentication\Events;
 
 use OCP\EventDispatcher\Event;
 
+/**
+ * Class LoginFailedEvent
+ *
+ * @package OCP\Authentication\Events
+ *
+ * @since 19.0.0
+ */
 class LoginFailedEvent extends Event {
 
 	/** @var string */
 	private $uid;
 
+	/**
+	 * @since 19.0.0
+	 */
 	public function __construct(string $uid) {
 		parent::__construct();
 
 		$this->uid = $uid;
 	}
 
+	/**
+	 * returns the uid of the user that was tried to login against
+	 *
+	 * @since 19.0.0
+	 */
 	public function getUid(): string {
 		return $this->uid;
 	}

@@ -59,6 +59,7 @@ use OCP\ILogger;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\Lockdown\ILockdownManager;
 use OCP\Security\ISecureRandom;
@@ -138,7 +139,8 @@ class Session implements IUserSession, Emitter {
 								ISecureRandom $random,
 								ILockdownManager $lockdownManager,
 								ILogger $logger,
-								IEventDispatcher $dispatcher) {
+								IEventDispatcher $dispatcher
+	) {
 		$this->manager = $manager;
 		$this->session = $session;
 		$this->timeFactory = $timeFactory;
@@ -148,6 +150,7 @@ class Session implements IUserSession, Emitter {
 		$this->lockdownManager = $lockdownManager;
 		$this->logger = $logger;
 		$this->dispatcher = $dispatcher;
+		$this->userManager = $userManager;
 	}
 
 	/**
@@ -475,7 +478,9 @@ class Session implements IUserSession, Emitter {
 					'preLoginNameUsedAsUserName',
 					['uid' => &$uid]
 				);
-				$this->dispatcher->dispatchTyped(new LoginFailedEvent($user));
+				if($this->manager->userExists($uid)) {
+					$this->dispatcher->dispatchTyped(new LoginFailedEvent($uid));
+				}
 
 				if ($currentDelay === 0) {
 					$throttler->sleepDelay($request->getRemoteAddress(), 'login');

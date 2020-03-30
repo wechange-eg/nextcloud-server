@@ -29,19 +29,22 @@ use OC\Core\Controller\LoginController;
 use OCP\Authentication\Events\LoginFailedEvent;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\ILogger;
+use OCP\IUserManager;
 use OCP\Util;
 
 class LoggedInCheckCommand extends ALoginCommand {
 
 	/** @var ILogger */
 	private $logger;
-
 	/** @var IEventDispatcher */
 	private $dispatcher;
+	/** @var IUserManager */
+	private $userManager;
 
-	public function __construct(ILogger $logger, IEventDispatcher $dispatcher) {
+	public function __construct(ILogger $logger, IEventDispatcher $dispatcher, IUserManager $userManager) {
 		$this->logger = $logger;
 		$this->dispatcher = $dispatcher;
+		$this->userManager = $userManager;
 	}
 
 	public function process(LoginData $loginData): LoginResult {
@@ -57,7 +60,9 @@ class LoggedInCheckCommand extends ALoginCommand {
 				'preLoginNameUsedAsUserName',
 				['uid' => &$uid]
 			);
-			$this->dispatcher->dispatchTyped(new LoginFailedEvent($uid));
+			if($this->userManager->userExists($uid)) {
+				$this->dispatcher->dispatchTyped(new LoginFailedEvent($uid));
+			}
 
 			return LoginResult::failure($loginData, LoginController::LOGIN_MSG_INVALIDPASSWORD);
 		}
