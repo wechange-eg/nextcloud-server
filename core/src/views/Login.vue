@@ -59,6 +59,7 @@
 					:inverted-colors="invertedColors"
 					:auto-complete-allowed="autoCompleteAllowed"
 					:isHttps="isHttps"
+					:hasPublicKeyCredential="hasPublicKeyCredential"
 					@submit="loading = true" />
 				<a @click.prevent="passwordlessLogin = false">
 					{{ t('core', 'Back') }}
@@ -145,6 +146,10 @@ export default {
 			default: false,
 		},
 		isHttps: {
+			type: Boolean,
+			default: false,
+		},
+		hasPublicKeyCredential: {
 			type: Boolean,
 			default: false,
 		}

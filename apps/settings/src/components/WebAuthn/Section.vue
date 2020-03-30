@@ -36,11 +36,11 @@
 			:name="device.name"
 			@delete="deleteDevice(device.id)" />
 
-		<p v-if="notSupported" class="warning">
+		<p v-if="!hasPublicKeyCredential" class="warning">
 			{{ t('settings', 'Your browser does not support Webauthn.') }}
 		</p>
 
-		<AddDevice v-if="!notSupported" @added="deviceAdded" />
+		<AddDevice v-if="hasPublicKeyCredential" :isHttps="isHttps" @added="deviceAdded" />
 	</div>
 </template>
 
@@ -65,11 +65,18 @@ export default {
 			type: Array,
 			required: true,
 		},
+		isHttps: {
+			type: Boolean,
+			default: false,
+		},
+		hasPublicKeyCredential: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	data() {
 		return {
 			devices: this.initialDevices,
-			notSupported: typeof (PublicKeyCredential) === 'undefined',
 		}
 	},
 	computed: {

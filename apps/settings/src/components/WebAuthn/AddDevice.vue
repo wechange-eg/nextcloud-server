@@ -20,7 +20,7 @@
   -->
 
 <template>
-	<div v-if="!https">
+	<div v-if="!isHttps">
 		{{ t('settings', 'Passwordless authentication requires a secure connection.') }}
 	</div>
 	<div v-else>
@@ -85,6 +85,10 @@ export default {
 	name: 'AddDevice',
 	props: {
 		httpWarning: Boolean,
+		isHttps: {
+			type: Boolean,
+			default: false
+		}
 	},
 	data() {
 		return {
@@ -92,7 +96,6 @@ export default {
 			credential: {},
 			RegistrationSteps,
 			step: RegistrationSteps.READY,
-			https: window.location.protocol === 'https:',
 		}
 	},
 	methods: {

@@ -408,7 +408,9 @@ var View = vue__WEBPACK_IMPORTED_MODULE_0__["default"].extend(_components_WebAut
 var devices = Object(_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_1__["loadState"])('settings', 'webauthn-devices');
 new View({
   propsData: {
-    initialDevices: devices
+    initialDevices: devices,
+    isHttps: window.location.protocol === 'https:',
+    hasPublicKeyCredential: typeof window.PublicKeyCredential !== 'undefined'
   }
 }).$mount('#security-webauthn');
 
@@ -22885,15 +22887,18 @@ var RegistrationSteps = Object.freeze({
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'AddDevice',
   props: {
-    httpWarning: Boolean
+    httpWarning: Boolean,
+    isHttps: {
+      type: Boolean,
+      default: false
+    }
   },
   data: function data() {
     return {
       name: '',
       credential: {},
       RegistrationSteps: RegistrationSteps,
-      step: RegistrationSteps.READY,
-      https: window.location.protocol === 'https:'
+      step: RegistrationSteps.READY
     };
   },
   methods: {
@@ -23169,12 +23174,19 @@ var sortByName = lodash_fp_sortBy__WEBPACK_IMPORTED_MODULE_1___default()('name')
     initialDevices: {
       type: Array,
       required: true
+    },
+    isHttps: {
+      type: Boolean,
+      default: false
+    },
+    hasPublicKeyCredential: {
+      type: Boolean,
+      default: false
     }
   },
   data: function data() {
     return {
-      devices: this.initialDevices,
-      notSupported: typeof PublicKeyCredential === 'undefined'
+      devices: this.initialDevices
     };
   },
   computed: {
@@ -40532,7 +40544,7 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return !_vm.https
+  return !_vm.isHttps
     ? _c("div", [
         _vm._v(
           "\n\t" +
@@ -40765,7 +40777,7 @@ var render = function() {
         })
       }),
       _vm._v(" "),
-      _vm.notSupported
+      !_vm.hasPublicKeyCredential
         ? _c("p", { staticClass: "warning" }, [
             _vm._v(
               "\n\t\t" +
@@ -40777,8 +40789,11 @@ var render = function() {
           ])
         : _vm._e(),
       _vm._v(" "),
-      !_vm.notSupported
-        ? _c("AddDevice", { on: { added: _vm.deviceAdded } })
+      _vm.hasPublicKeyCredential
+        ? _c("AddDevice", {
+            attrs: { isHttps: _vm.isHttps },
+            on: { added: _vm.deviceAdded }
+          })
         : _vm._e()
     ],
     2
@@ -49866,4 +49881,4 @@ module.exports = function(module) {
 /***/ })
 
 /******/ });
-//# sourceMappingURL=vue-settings-personal-webauthn.js.map?v=cc93b326e6432bb6d9fe
+//# sourceMappingURL=vue-settings-personal-webauthn.js.map?v=b9c3c73ac44aeb61425f

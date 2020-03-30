@@ -1,5 +1,6 @@
 <template>
-	<form v-if="isHttps" ref="loginForm"
+	<form v-if="isHttps && hasPublicKeyCredential"
+		ref="loginForm"
 		method="post"
 		name="login"
 		@submit.prevent="submit">
@@ -21,8 +22,11 @@
 			<LoginButton :loading="loading" :inverted-colors="invertedColors" @click="authenticate" />
 		</fieldset>
 	</form>
-	<div v-else>
-		{{ t('core', 'Passwordless authentication is only available over a secure connection')}}
+	<div v-else-if="!hasPublicKeyCredential">
+		{{ t('core', 'Passwordless authentication is not supported in your browser.')}}
+	</div>
+	<div v-else-if="!isHttps">
+		{{ t('core', 'Passwordless authentication is only available over a secure connection.')}}
 	</div>
 </template>
 
@@ -55,6 +59,10 @@ export default {
 			default: true,
 		},
 		isHttps: {
+			type: Boolean,
+			default: false,
+		},
+		hasPublicKeyCredential: {
 			type: Boolean,
 			default: false,
 		}

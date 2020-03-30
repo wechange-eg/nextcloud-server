@@ -34,5 +34,7 @@ const devices = loadState('settings', 'webauthn-devices')
 new View({
 	propsData: {
 		initialDevices: devices,
+		isHttps: window.location.protocol === 'https:',
+		hasPublicKeyCredential: typeof (window.PublicKeyCredential) !== 'undefined',
 	},
 }).$mount('#security-webauthn')

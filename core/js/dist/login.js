@@ -7120,7 +7120,8 @@ new View({
     resetPasswordUser: fromStateOr('resetPasswordUser', ''),
     directLogin: query.direct === '1',
     hasPasswordless: fromStateOr('webauthn-available', false),
-    isHttps: window.location.protocol === 'https:'
+    isHttps: window.location.protocol === 'https:',
+    hasPublicKeyCredential: typeof window.PublicKeyCredential !== 'undefined'
   }
 }).$mount('#login');
 
@@ -25609,6 +25610,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -25633,6 +25638,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       default: true
     },
     isHttps: {
+      type: Boolean,
+      default: false
+    },
+    hasPublicKeyCredential: {
       type: Boolean,
       default: false
     }
@@ -26193,6 +26202,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 
 
 
@@ -26255,6 +26265,10 @@ __webpack_require__.r(__webpack_exports__);
       default: false
     },
     isHttps: {
+      type: Boolean,
+      default: false
+    },
+    hasPublicKeyCredential: {
       type: Boolean,
       default: false
     }
@@ -61785,7 +61799,7 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm.isHttps
+  return _vm.isHttps && _vm.hasPublicKeyCredential
     ? _c(
         "form",
         {
@@ -61855,18 +61869,33 @@ var render = function() {
           )
         ]
       )
-    : _c("div", [
+    : !_vm.hasPublicKeyCredential
+    ? _c("div", [
         _vm._v(
           "\n\t" +
             _vm._s(
               _vm.t(
                 "core",
-                "Passwordless authentication is only available over a secure connection"
+                "Passwordless authentication is not supported in your browser."
               )
             ) +
             "\n"
         )
       ])
+    : !_vm.isHttps
+    ? _c("div", [
+        _vm._v(
+          "\n\t" +
+            _vm._s(
+              _vm.t(
+                "core",
+                "Passwordless authentication is only available over a secure connection."
+              )
+            ) +
+            "\n"
+        )
+      ])
+    : _vm._e()
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -62315,7 +62344,8 @@ var render = function() {
                     "redirect-url": _vm.redirectUrl,
                     "inverted-colors": _vm.invertedColors,
                     "auto-complete-allowed": _vm.autoCompleteAllowed,
-                    isHttps: _vm.isHttps
+                    isHttps: _vm.isHttps,
+                    hasPublicKeyCredential: _vm.hasPublicKeyCredential
                   },
                   on: {
                     "update:username": function($event) {
