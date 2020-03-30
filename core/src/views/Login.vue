@@ -152,7 +152,7 @@ export default {
 		hasPublicKeyCredential: {
 			type: Boolean,
 			default: false,
-		}
+		},
 	},
 	data() {
 		return {

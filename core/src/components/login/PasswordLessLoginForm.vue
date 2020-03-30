@@ -19,7 +19,14 @@
 				<label for="user" class="infield">{{ t('core', 'Username or	email') }}</label>
 			</p>
 
-			<LoginButton :loading="loading" :inverted-colors="invertedColors" @click="authenticate" />
+			<div v-if="!validCredentials">
+				{{ t('core', 'Your account is not setup for passwordless login.') }}
+			</div>
+
+			<LoginButton v-if="validCredentials"
+				:loading="loading"
+				:inverted-colors="invertedColors"
+				@click="authenticate" />
 		</fieldset>
 	</form>
 	<div v-else-if="!hasPublicKeyCredential">
@@ -36,6 +43,10 @@ import {
 	finishAuthentication,
 } from '../../service/WebAuthnAuthenticationService'
 import LoginButton from './LoginButton'
+
+class NoValidCredentials extends Error {
+
+}
 
 export default {
 	name: 'PasswordLessLoginForm',
@@ -71,6 +82,7 @@ export default {
 		return {
 			user: this.username,
 			loading: false,
+			validCredentials: true,
 		}
 	},
 	methods: {
@@ -84,6 +96,13 @@ export default {
 				})
 				.then(this.sign)
 				.then(this.completeAuthentication)
+				.catch(error => {
+					if (error instanceof NoValidCredentials) {
+						this.validCredentials = false
+						return
+					}
+					console.debug(error)
+				})
 		},
 		getAuthenticationData(uid) {
 			const base64urlDecode = function(input) {
@@ -107,6 +126,12 @@ export default {
 			return startAuthentication(uid)
 				.then(publicKey => {
 					console.debug('Obtained PublicKeyCredentialRequestOptions')
+					console.debug(publicKey)
+
+					if (!publicKey.hasOwnProperty('allowCredentials')) {
+						console.debug('No credentials found.')
+						throw new NoValidCredentials()
+					}
 
 					publicKey.challenge = Uint8Array.from(base64urlDecode(publicKey.challenge), c => c.charCodeAt(0))
 					publicKey.allowCredentials = publicKey.allowCredentials.map(function(data) {
@@ -121,8 +146,8 @@ export default {
 					return publicKey
 				})
 				.catch(error => {
-					console.debug('GOT AN ERROR WHILE OBTAINING DATA!')
-					console.debug(error) // Example: timeout, interaction refused...
+					console.debug('Error while obtaining data')
+					throw error
 				})
 		},
 		sign(publicKey) {
