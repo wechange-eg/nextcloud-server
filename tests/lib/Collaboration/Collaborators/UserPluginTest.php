@@ -27,6 +27,7 @@ use OC\Collaboration\Collaborators\SearchResult;
 use OC\Collaboration\Collaborators\UserPlugin;
 use OCP\Collaboration\Collaborators\ISearchResult;
 use OCP\IConfig;
+use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -107,6 +108,16 @@ class UserPluginTest extends TestCase {
 		return $user;
 	}
 
+	public function getGroupMock($gid) {
+		$group = $this->createMock(IGroup::class);
+
+		$group->expects($this->any())
+			->method('getGID')
+			->willReturn($gid);
+
+		return $group;
+	}
+
 	public function dataGetUsers() {
 		return [
 			['test', false, true, [], [], [], [], true, false],
@@ -117,33 +128,33 @@ class UserPluginTest extends TestCase {
 				'test', false, true, [], [],
 				[
 					['label' => 'Test', 'value' => ['shareType' => Share::SHARE_TYPE_USER, 'shareWith' => 'test']],
-				], [], true, $this->getUserMock('test', 'Test')
+				], [], true, $this->getUserMock('test', 'Test'),
 			],
 			[
 				'test', false, false, [], [],
 				[
 					['label' => 'Test', 'value' => ['shareType' => Share::SHARE_TYPE_USER, 'shareWith' => 'test']],
-				], [], true, $this->getUserMock('test', 'Test')
+				], [], true, $this->getUserMock('test', 'Test'),
 			],
 			[
 				'test', true, true, [], [],
-				[], [], true, $this->getUserMock('test', 'Test')
+				[], [], true, $this->getUserMock('test', 'Test'),
 			],
 			[
 				'test', true, false, [], [],
-				[], [], true, $this->getUserMock('test', 'Test')
+				[], [], true, $this->getUserMock('test', 'Test'),
 			],
 			[
 				'test', true, true, ['test-group'], [['test-group', 'test', 2, 0, []]],
 				[
 					['label' => 'Test', 'value' => ['shareType' => Share::SHARE_TYPE_USER, 'shareWith' => 'test']],
-				], [], true, $this->getUserMock('test', 'Test')
+				], [], true, $this->getUserMock('test', 'Test'),
 			],
 			[
 				'test', true, false, ['test-group'], [['test-group', 'test', 2, 0, []]],
 				[
 					['label' => 'Test', 'value' => ['shareType' => Share::SHARE_TYPE_USER, 'shareWith' => 'test']],
-				], [], true, $this->getUserMock('test', 'Test')
+				], [], true, $this->getUserMock('test', 'Test'),
 			],
 			[
 				'test',
@@ -256,6 +267,7 @@ class UserPluginTest extends TestCase {
 				],
 				true,
 				false,
+				[['test1', $this->getUserMock('test1', 'Test One')]],
 			],
 			[
 				'test',
@@ -270,6 +282,7 @@ class UserPluginTest extends TestCase {
 				[],
 				true,
 				false,
+				[['test1', $this->getUserMock('test1', 'Test One')]],
 			],
 			[
 				'test',
@@ -293,6 +306,10 @@ class UserPluginTest extends TestCase {
 				],
 				false,
 				false,
+				[
+					['test1', $this->getUserMock('test1', 'Test One')],
+					['test2', $this->getUserMock('test2', 'Test Two')],
+				],
 			],
 			[
 				'test',
@@ -313,6 +330,10 @@ class UserPluginTest extends TestCase {
 				[],
 				true,
 				false,
+				[
+					['test1', $this->getUserMock('test1', 'Test One')],
+					['test2', $this->getUserMock('test2', 'Test Two')],
+				],
 			],
 			[
 				'test',
@@ -335,6 +356,10 @@ class UserPluginTest extends TestCase {
 				],
 				false,
 				false,
+				[
+					['test', $this->getUserMock('test', 'Test One')],
+					['test2', $this->getUserMock('test2', 'Test Two')],
+				],
 			],
 			[
 				'test',
@@ -355,6 +380,10 @@ class UserPluginTest extends TestCase {
 				[],
 				true,
 				false,
+				[
+					['test', $this->getUserMock('test', 'Test One')],
+					['test2', $this->getUserMock('test2', 'Test Two')],
+				],
 			],
 		];
 	}
@@ -371,6 +400,7 @@ class UserPluginTest extends TestCase {
 	 * @param array $expected
 	 * @param bool $reachedEnd
 	 * @param bool|IUser $singleUser
+	 * @param array $users
 	 */
 	public function testSearch(
 		$searchTerm,
@@ -381,7 +411,8 @@ class UserPluginTest extends TestCase {
 		array $exactExpected,
 		array $expected,
 		$reachedEnd,
-		$singleUser
+		$singleUser,
+		array $users = []
 	) {
 		$this->config->expects($this->any())
 			->method('getAppValue')
@@ -404,40 +435,35 @@ class UserPluginTest extends TestCase {
 			->method('getUser')
 			->willReturn($this->user);
 
-		if(!$shareWithGroupOnly) {
+		if (!$shareWithGroupOnly) {
 			$this->userManager->expects($this->once())
 				->method('searchDisplayName')
 				->with($searchTerm, $this->limit, $this->offset)
 				->willReturn($userResponse);
 		} else {
+			$this->groupManager->method('getUserGroupIds')
+				->with($this->user)
+				->willReturn($groupResponse);
+
 			if ($singleUser !== false) {
-				$this->groupManager->expects($this->exactly(2))
-					->method('getUserGroupIds')
-					->withConsecutive(
-						[$this->user],
-						[$singleUser]
-					)
-					->willReturn($groupResponse);
-			} else {
-				$this->groupManager->expects($this->once())
-					->method('getUserGroupIds')
-					->with($this->user)
+				$this->groupManager->method('getUserGroupIds')
+					->with($singleUser)
 					->willReturn($groupResponse);
 			}
 
-			$this->groupManager->expects($this->exactly(sizeof($groupResponse)))
-				->method('displayNamesInGroup')
-				->with($this->anything(), $searchTerm, $this->limit, $this->offset)
+			$this->groupManager->method('displayNamesInGroup')
 				->willReturnMap($userResponse);
 		}
 
 		if ($singleUser !== false) {
-			$this->userManager->expects($this->once())
-				->method('get')
-				->with($searchTerm)
-				->willReturn($singleUser);
+			$users[] = [$searchTerm, $singleUser];
 		}
 
+		if (!empty($users)) {
+			$this->userManager->expects($this->atLeastOnce())
+				->method('get')
+				->willReturnMap($users);
+		}
 
 		$moreResults = $this->plugin->search($searchTerm, $this->limit, $this->offset, $this->searchResult);
 		$result = $this->searchResult->asArray();
@@ -451,24 +477,24 @@ class UserPluginTest extends TestCase {
 		$inputUsers = [
 			'alice' => 'Alice',
 			'bob' => 'Bob',
-			'carol' => 'Carol'
+			'carol' => 'Carol',
 		];
 		return [
 			[
 				$inputUsers,
 				['alice', 'carol'],
-				'bob'
+				'bob',
 			],
 			[
 				$inputUsers,
 				['alice', 'bob', 'carol'],
-				'dave'
+				'dave',
 			],
 			[
 				$inputUsers,
 				['alice', 'bob', 'carol'],
-				null
-			]
+				null,
+			],
 		];
 	}
 
@@ -483,8 +509,8 @@ class UserPluginTest extends TestCase {
 
 		$this->session->expects($this->once())
 			->method('getUser')
-			->willReturnCallback(function() use ($currentUserId) {
-				if($currentUserId !== null) {
+			->willReturnCallback(function () use ($currentUserId) {
+				if ($currentUserId !== null) {
 					return $this->getUserMock($currentUserId, $currentUserId);
 				}
 				return null;

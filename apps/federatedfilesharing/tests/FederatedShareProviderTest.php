@@ -196,7 +196,9 @@ class FederatedShareProviderTest extends \Test\TestCase {
 			'accepted' => 0,
 			'token' => 'token',
 		];
-		$this->assertArraySubset($expected, $data);
+		foreach (array_keys($expected) as $key) {
+			$this->assertEquals($expected[$key], $data[$key], "Assert that value for key '$key' is the same");
+		}
 
 		$this->assertEquals($data['id'], $share->getId());
 		$this->assertEquals(\OCP\Share::SHARE_TYPE_REMOTE, $share->getShareType());
@@ -778,7 +780,7 @@ class FederatedShareProviderTest extends \Test\TestCase {
 		$this->gsConfig->expects($this->once())->method('isGlobalScaleEnabled')
 			->willReturn($gsEnabled);
 		$this->config->expects($this->any())->method('getAppValue')
-			->with('files_sharing', 'lookupServerEnabled', 'no')
+			->with('files_sharing', 'lookupServerEnabled', 'yes')
 			->willReturn($isEnabled);
 
 		$this->assertSame($expected,

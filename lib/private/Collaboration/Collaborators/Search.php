@@ -52,6 +52,9 @@ class Search implements ISearch {
 	public function search($search, array $shareTypes, $lookup, $limit, $offset) {
 		$hasMoreResults = false;
 
+		// Trim leading and trailing whitespace characters, e.g. when query is copy-pasted
+		$search = trim($search);
+
 		/** @var ISearchResult $searchResult */
 		$searchResult = $this->c->resolve(SearchResult::class);
 
@@ -82,6 +85,14 @@ class Search implements ISearch {
 		if($searchResult->hasExactIdMatch($emailType) && !$searchResult->hasExactIdMatch($remoteType)) {
 			$searchResult->unsetResult($remoteType);
 		} elseif (!$searchResult->hasExactIdMatch($emailType) && $searchResult->hasExactIdMatch($remoteType)) {
+			$searchResult->unsetResult($emailType);
+		}
+
+		// if we have an exact local user match with an email-a-like query,
+		// there is no need to show the remote and email matches.
+		$userType = new SearchResultType('users');
+		if (strpos($search, '@') !== false && $searchResult->hasExactIdMatch($userType)) {
+			$searchResult->unsetResult($remoteType);
 			$searchResult->unsetResult($emailType);
 		}
 

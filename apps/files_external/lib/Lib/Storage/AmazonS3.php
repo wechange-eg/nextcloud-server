@@ -44,6 +44,7 @@ use Aws\S3\S3Client;
 use Icewind\Streams\CallbackWrapper;
 use Icewind\Streams\IteratorDirectory;
 use OC\Cache\CappedMemoryCache;
+use OC\Files\Cache\CacheEntry;
 use OC\Files\ObjectStore\S3ConnectionTrait;
 use OC\Files\ObjectStore\S3ObjectTrait;
 use OCP\Constants;
@@ -55,11 +56,6 @@ class AmazonS3 extends \OC\Files\Storage\Common {
 	public function needsPartFile() {
 		return false;
 	}
-
-	/**
-	 * @var int in seconds
-	 */
-	private $rescanDelay = 10;
 
 	/** @var CappedMemoryCache|Result[] */
 	private $objectCache;
@@ -163,10 +159,11 @@ class AmazonS3 extends \OC\Files\Storage\Common {
 			try {
 				$result = $this->getConnection()->listObjects([
 					'Bucket' => $this->bucket,
-					'Prefix' => rtrim($path, '/') . '/',
+					'Prefix' => rtrim($path, '/'),
 					'MaxKeys' => 1,
+					'Delimiter' => '/',
 				]);
-				$this->directoryCache[$path] = $result['Contents'] || $result['CommonPrefixes'];
+				$this->directoryCache[$path] = ($result['Contents'][0]['Key'] === rtrim($path, '/') . '/') || $result['CommonPrefixes'];
 			} catch (S3Exception $e) {
 				if ($e->getStatusCode() === 403) {
 					$this->directoryCache[$path] = false;
@@ -377,7 +374,12 @@ class AmazonS3 extends \OC\Files\Storage\Common {
 			if ($this->is_dir($path)) {
 				//folders don't really exist
 				$stat['size'] = -1; //unknown
-				$stat['mtime'] = time() - $this->rescanDelay * 1000;
+				$stat['mtime'] = time();
+				$cacheEntry = $this->getCache()->get($path);
+				if ($cacheEntry instanceof CacheEntry && $this->getMountOption('filesystem_check_changes', 1) !== 1) {
+					$stat['size'] = $cacheEntry->getSize();
+					$stat['mtime'] = $cacheEntry->getMTime();
+				}
 			} else {
 				$stat['size'] = $this->getContentLength($path);
 				$stat['mtime'] = strtotime($this->getLastModified($path));
@@ -402,12 +404,12 @@ class AmazonS3 extends \OC\Files\Storage\Common {
 	 */
 	private function getContentLength($path) {
 		if (isset($this->filesCache[$path])) {
-			return $this->filesCache[$path]['ContentLength'];
+			return (int)$this->filesCache[$path]['ContentLength'];
 		}
 
 		$result = $this->headObject($path);
 		if (isset($result['ContentLength'])) {
-			return $result['ContentLength'];
+			return (int)$result['ContentLength'];
 		}
 
 		return 0;
@@ -504,6 +506,12 @@ class AmazonS3 extends \OC\Files\Storage\Common {
 		switch ($mode) {
 			case 'r':
 			case 'rb':
+				// Don't try to fetch empty files
+				$stat = $this->stat($path);
+				if (is_array($stat) && isset($stat['size']) && $stat['size'] === 0) {
+					return fopen('php://memory', $mode);
+				}
+
 				try {
 					return $this->readObject($path);
 				} catch (S3Exception $e) {

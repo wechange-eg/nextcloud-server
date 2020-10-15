@@ -35,8 +35,8 @@ declare(strict_types=1);
 namespace OC\Mail;
 
 use OCP\Defaults;
-use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\L10N\IFactory;
 use OCP\Mail\IEMailTemplate;
 
 /**
@@ -52,8 +52,8 @@ class EMailTemplate implements IEMailTemplate {
 	protected $themingDefaults;
 	/** @var IURLGenerator */
 	protected $urlGenerator;
-	/** @var IL10N */
-	protected $l10n;
+	/** @var IFactory */
+	protected $l10nFactory;
 	/** @var string */
 	protected $emailId;
 	/** @var array */
@@ -236,7 +236,7 @@ EOF;
 				<tr style="padding:0;text-align:left;vertical-align:top">
 					<th style="Margin:0;color:#0a0a0a;font-family:Lucida Grande,Geneva,Verdana,sans-serif;font-size:16px;font-weight:400;line-height:1.3;margin:0;padding:0;text-align:left">
 						<center data-parsed="" style="min-width:490px;width:100%%">
-							<table class="button btn default primary float-center" style="Margin:0 0 30px 0;border-collapse:collapse;border-spacing:0;display:inline-block;float:none;margin:0 0 30px 0;margin-right:15px;max-height:40px;max-width:200px;padding:0;text-align:center;vertical-align:top;width:auto;background:%1\$s;background-color:%1\$s;color:#fefefe;">
+							<table class="button btn default primary float-center" style="Margin:0 0 30px 0;border-collapse:collapse;border-spacing:0;display:inline-block;float:none;margin:0 0 30px 0;margin-right:15px;max-height:60px;max-width:200px;padding:0;text-align:center;vertical-align:top;width:auto;background:%1\$s;background-color:%1\$s;color:#fefefe;">
 								<tr style="padding:0;text-align:left;vertical-align:top">
 									<td style="-moz-hyphens:auto;-webkit-hyphens:auto;Margin:0;border-collapse:collapse!important;color:#0a0a0a;font-family:Lucida Grande,Geneva,Verdana,sans-serif;font-size:16px;font-weight:400;hyphens:auto;line-height:1.3;margin:0;padding:0;text-align:left;vertical-align:top;word-wrap:break-word">
 										<table style="border-collapse:collapse;border-spacing:0;padding:0;text-align:left;vertical-align:top;width:100%%">
@@ -289,7 +289,7 @@ EOF;
 				<tr style="padding:0;text-align:left;vertical-align:top">
 					<th style="Margin:0;color:#0a0a0a;font-family:Lucida Grande,Geneva,Verdana,sans-serif;font-size:16px;font-weight:400;line-height:1.3;margin:0;padding:0;text-align:left">
 						<center data-parsed="" style="min-width:490px;width:100%%">
-							<table class="button btn default primary float-center" style="Margin:0;border-collapse:collapse;border-spacing:0;display:inline-block;float:none;margin:0;max-height:40px;padding:0;text-align:center;vertical-align:top;width:auto;background:%1\$s;color:#fefefe;background-color:%1\$s;">
+							<table class="button btn default primary float-center" style="Margin:0;border-collapse:collapse;border-spacing:0;display:inline-block;float:none;margin:0;max-height:60px;padding:0;text-align:center;vertical-align:top;width:auto;background:%1\$s;color:#fefefe;background-color:%1\$s;">
 								<tr style="padding:0;text-align:left;vertical-align:top">
 									<td style="-moz-hyphens:auto;-webkit-hyphens:auto;Margin:0;border-collapse:collapse!important;color:#0a0a0a;font-family:Lucida Grande,Geneva,Verdana,sans-serif;font-size:16px;font-weight:400;hyphens:auto;line-height:1.3;margin:0;padding:0;text-align:left;vertical-align:top;word-wrap:break-word">
 										<table style="border-collapse:collapse;border-spacing:0;padding:0;text-align:left;vertical-align:top;width:100%%">
@@ -350,21 +350,14 @@ EOF;
 </table>
 EOF;
 
-	/**
-	 * @param Defaults $themingDefaults
-	 * @param IURLGenerator $urlGenerator
-	 * @param IL10N $l10n
-	 * @param string $emailId
-	 * @param array $data
-	 */
 	public function __construct(Defaults $themingDefaults,
 								IURLGenerator $urlGenerator,
-								IL10N $l10n,
+								IFactory $l10nFactory,
 								$emailId,
 								array $data) {
 		$this->themingDefaults = $themingDefaults;
 		$this->urlGenerator = $urlGenerator;
-		$this->l10n = $l10n;
+		$this->l10nFactory = $l10nFactory;
 		$this->htmlBody .= $this->head;
 		$this->emailId = $emailId;
 		$this->data = $data;
@@ -607,9 +600,10 @@ EOF;
 	 *
 	 * @param string $text If the text is empty the default "Name - Slogan<br>This is an automatically sent email" will be used
 	 */
-	public function addFooter(string $text = '') {
+	public function addFooter(string $text = '', ?string $lang = null) {
 		if($text === '') {
-			$text = $this->themingDefaults->getName() . ' - ' . $this->themingDefaults->getSlogan() . '<br>' . $this->l10n->t('This is an automatically sent email, please do not reply.');
+			$l10n = $this->l10nFactory->get('lib', $lang);
+			$text = $this->themingDefaults->getName() . ' - ' . $this->themingDefaults->getSlogan($lang) . '<br>' . $l10n->t('This is an automatically sent email, please do not reply.');
 		}
 
 		if ($this->footerAdded) {

@@ -27,6 +27,7 @@
 
 namespace OC\Files\Cache;
 
+use OC\Files\FileInfo;
 use OCP\Files\Cache\ICacheEntry;
 use OCP\Files\Cache\IUpdater;
 use OCP\Files\Storage\IStorage;
@@ -187,7 +188,9 @@ class Updater implements IUpdater {
 		$sourceUpdater = $sourceStorage->getUpdater();
 		$sourcePropagator = $sourceStorage->getPropagator();
 
-		if ($sourceCache->inCache($source)) {
+		$sourceInfo = $sourceCache->get($source);
+
+		if ($sourceInfo !== false) {
 			if ($this->cache->inCache($target)) {
 				$this->cache->remove($target);
 			}
@@ -197,13 +200,17 @@ class Updater implements IUpdater {
 			} else {
 				$this->cache->moveFromCache($sourceCache, $source, $target);
 			}
-		}
 
-		if (pathinfo($source, PATHINFO_EXTENSION) !== pathinfo($target, PATHINFO_EXTENSION)) {
-			// handle mime type change
-			$mimeType = $this->storage->getMimeType($target);
-			$fileId = $this->cache->getId($target);
-			$this->cache->update($fileId, ['mimetype' => $mimeType]);
+			$sourceExtension = pathinfo($source, PATHINFO_EXTENSION);
+			$targetExtension = pathinfo($target, PATHINFO_EXTENSION);
+			$targetIsTrash = preg_match("/d\d+/", $targetExtension);
+
+			if ($sourceExtension !== $targetExtension && $sourceInfo->getMimeType() !== FileInfo::MIMETYPE_FOLDER && !$targetIsTrash) {
+				// handle mime type change
+				$mimeType = $this->storage->getMimeType($target);
+				$fileId = $this->cache->getId($target);
+				$this->cache->update($fileId, ['mimetype' => $mimeType]);
+			}
 		}
 
 		if ($sourceCache instanceof Cache) {
@@ -224,12 +231,15 @@ class Updater implements IUpdater {
 	private function updateStorageMTimeOnly($internalPath) {
 		$fileId = $this->cache->getId($internalPath);
 		if ($fileId !== -1) {
-			$this->cache->update(
-				$fileId, [
-					'mtime' => null, // this magic tells it to not overwrite mtime
-					'storage_mtime' => $this->storage->filemtime($internalPath)
-				]
-			);
+			$mtime = $this->storage->filemtime($internalPath);
+			if ($mtime !== false) {
+				$this->cache->update(
+					$fileId, [
+						'mtime' => null, // this magic tells it to not overwrite mtime
+						'storage_mtime' => $mtime
+					]
+				);
+			}
 		}
 	}
 

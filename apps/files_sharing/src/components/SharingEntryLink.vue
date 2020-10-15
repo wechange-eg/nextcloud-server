@@ -126,21 +126,21 @@
 				<template v-if="share.canEdit">
 					<!-- folder -->
 					<template v-if="isFolder && fileHasCreatePermission && config.isPublicUploadEnabled">
-						<ActionRadio :checked="share.permissions === publicUploadRValue"
+						<ActionRadio :checked="sharePermissions === publicUploadRValue"
 							:value="publicUploadRValue"
 							:name="randomId"
 							:disabled="saving"
 							@change="togglePermissions">
 							{{ t('files_sharing', 'Read only') }}
 						</ActionRadio>
-						<ActionRadio :checked="share.permissions === publicUploadRWValue"
+						<ActionRadio :checked="sharePermissions === publicUploadRWValue"
 							:value="publicUploadRWValue"
 							:disabled="saving"
 							:name="randomId"
 							@change="togglePermissions">
 							{{ t('files_sharing', 'Allow upload and editing') }}
 						</ActionRadio>
-						<ActionRadio :checked="share.permissions === publicUploadWValue"
+						<ActionRadio :checked="sharePermissions === publicUploadWValue"
 							:value="publicUploadWValue"
 							:disabled="saving"
 							:name="randomId"
@@ -198,9 +198,9 @@
 					<!-- password protected by Talk -->
 					<ActionCheckbox v-if="isPasswordProtectedByTalkAvailable"
 						:checked.sync="isPasswordProtectedByTalk"
-						:disabled="saving"
+						:disabled="!canTogglePasswordProtectedByTalkAvailable || saving"
 						class="share-link-password-talk-checkbox"
-						@change="queueUpdate('sendPasswordByTalk')">
+						@change="onPasswordProtectedByTalkChange">
 						{{ t('files_sharing', 'Video verification') }}
 					</ActionCheckbox>
 
@@ -358,6 +358,15 @@ export default {
 
 	computed: {
 		/**
+		 * Return the current share permissions
+		 * We always ignore the SHARE permission as this is used for the
+		 * federated sharing.
+		 * @returns {number}
+		 */
+		sharePermissions() {
+			return this.share.permissions & ~OC.PERMISSION_SHARE
+		},
+		/**
 		 * Generate a unique random id for this SharingEntryLink only
 		 * This allows ActionRadios to have the same name prop
 		 * but not to impact others SharingEntryLink
@@ -465,6 +474,20 @@ export default {
 			return this.share
 				? this.share.type === this.SHARE_TYPES.SHARE_TYPE_EMAIL
 				: false
+		},
+
+		canTogglePasswordProtectedByTalkAvailable() {
+			if (!this.isPasswordProtected) {
+				// Makes no sense
+				return false
+			} else if (this.isEmailShareType && !this.hasUnsavedPassword) {
+				// For email shares we need a new password in order to enable or
+				// disable
+				return false
+			}
+
+			// Anything else should be fine
+			return true
 		},
 
 		/**
@@ -658,7 +681,11 @@ export default {
 				// Execute the copy link method
 				// freshly created share component
 				// ! somehow does not works on firefox !
-				component.copyLink()
+				if (!this.config.enforcePasswordForPublicLink) {
+					// Only copy the link when the password was not forced,
+					// otherwise the user needs to copy/paste the password before finishing the share.
+					component.copyLink()
+				}
 
 			} catch ({ response }) {
 				const message = response.data.ocs.meta.message
@@ -776,6 +803,22 @@ export default {
 				this.share.password = this.share.newPassword.trim()
 				this.queueUpdate('password')
 			}
+		},
+
+		/**
+		 * Update the password along with "sendPasswordByTalk".
+		 *
+		 * If the password was modified the new password is sent; otherwise
+		 * updating a mail share would fail, as in that case it is required that
+		 * a new password is set when enabling or disabling
+		 * "sendPasswordByTalk".
+		 */
+		onPasswordProtectedByTalkChange() {
+			if (this.hasUnsavedPassword) {
+				this.share.password = this.share.newPassword.trim()
+			}
+
+			this.queueUpdate('sendPasswordByTalk', 'password')
 		},
 
 		/**

@@ -23,7 +23,7 @@ OC.L10N.register(
     "A non-default update server is in use to be checked for updates:" : "Za posodobitev bo uporabljen neprivzet strežnik:",
     "Update channel:" : "Posodobi kanal:",
     "You can always update to a newer version. But you can never downgrade to a more stable version." : "Nadgradnja na višjo različico je vedno mogoča, ne pa tudi povrnitev na predhodno, bolj stabilno.",
-    "Note that after a new release it can take some time before it shows up here. We roll out new versions spread out over time to our users and sometimes skip a version when issues are found." : "Po vsaki novi objavi je lahko tudi daljši časovni zamik, preden se posodobitev pojavi v sistemu. Nove različice objavljamo v časovnih razmikih in včasih kakšno tudi preskočimo, če prvi uporabniki zaznajo težave ali napake.",
+    "Note that after a new release it can take some time before it shows up here. We roll out new versions spread out over time to our users and sometimes skip a version when issues are found." : "Po vsaki novi objavi je lahko tudi daljši časovni zamik, preden se posodobitev pojavi v sistemu. Nove različice objavljamo v časovnih razmikih in včasih kakšno tudi preskočimo, če prvi uporabniki zaznajo težave, ali napake.",
     "Notify members of the following groups about available updates:" : "Člani navedenih skupin, ki so obveščeni o posodobitvah:",
     "Only notification for app updates are available." : "Na voljo so le obvestila za posodobitve programov.",
     "The selected update channel makes dedicated notifications for the server obsolete." : "Izbran kanal za posodobitve onemogoča obvestila s strežnika.",
@@ -32,12 +32,11 @@ OC.L10N.register(
     "Checked on {lastCheckedDate}" : "Nazadnje preverjeno {lastCheckedDate}",
     "Checking apps for compatible updates" : "Poteka preverjanje za skladne posodobitve ...",
     "Please make sure your config.php does not set <samp>appstoreenabled</samp> to false." : "Prepričajte se, da v datoteki config.php možnost <samp>appstoreenabled</samp> ni nastavljena na vrednost napak – false.",
-    "<strong>All</strong> apps have an update for this version available" : "Za <strong>vse</strong> programe je na voljo posodobitev za to različico",
+    "<strong>All</strong> apps have an update for this version available" : "Za <strong>vse nameščene programe</strong> je na voljo podprta posodobitev.",
     "View changelog" : "Ogled Dnevnika sprememb",
     "Enterprise" : "Poslovno",
     "For enterprise use. Provides always the latest patch level, but will not update to the next major release immediately. That update happens once Nextcloud GmbH has done additional hardening and testing for large-scale and mission-critical deployments. This channel is only available to customers and provides the Nextcloud Enterprise package." : "Za poslovno uporabo. Na voljo so najnovejši popravki programov in manjše posodobitve, ne pa tudi takojšnja nadgradnja sistema na naslednjo večjo različico. Ta posodobitev je na voljo šele po daljšem in podrobnejšem preizkušanju sistema. Ta kanal je na voljo le naročnikom, ki uporabljajo paket Nextcloud Enterprise.",
     "Stable" : "Stabilno",
-    "Beta" : "Preizkusno",
-    "Production" : "Produkcijska različica"
+    "Beta" : "Preizkusno"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

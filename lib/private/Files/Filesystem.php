@@ -438,8 +438,12 @@ class Filesystem {
 
 			// home mounts are handled seperate since we need to ensure this is mounted before we call the other mount providers
 			$homeMount = $mountConfigManager->getHomeMountForUser($userObject);
-
 			self::getMountManager()->addMount($homeMount);
+
+			if ($homeMount->getStorageRootId() === -1) {
+				$homeMount->getStorage()->mkdir('');
+				$homeMount->getStorage()->getScanner()->scan('');
+			}
 
 			\OC\Files\Filesystem::getStorage($user);
 
@@ -829,7 +833,7 @@ class Filesystem {
 		$patterns = [
 			'/\\\\/s',          // no windows style slashes
 			'/\/\.(\/\.)?\//s', // remove '/./'
-			'/\/{2,}/s',        // remove squence of slashes
+			'/\/{2,}/s',        // remove sequence of slashes
 			'/\/\.$/s',         // remove trailing /.
 		];
 

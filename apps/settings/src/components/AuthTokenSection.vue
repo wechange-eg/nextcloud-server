@@ -21,7 +21,7 @@
 
 <template>
 	<div id="security" class="section">
-		<h2>{{ t('settings', 'Devices & sessions') }}</h2>
+		<h2>{{ t('settings', 'Devices & sessions', {}, undefined, {sanitize: false}) }}</h2>
 		<p class="settings-hint hidden-when-empty">
 			{{ t('settings', 'Web, desktop and mobile clients currently logged in to your account.') }}
 		</p>
@@ -44,8 +44,8 @@ import AuthTokenSetupDialogue from './AuthTokenSetupDialogue'
 const confirm = () => {
 	return new Promise(resolve => {
 		OC.dialogs.confirm(
-			t('core', 'Do you really want to wipe your data from this device?'),
-			t('core', 'Confirm wipe'),
+			t('settings', 'Do you really want to wipe your data from this device?'),
+			t('settings', 'Confirm wipe'),
 			resolve,
 			true
 		)

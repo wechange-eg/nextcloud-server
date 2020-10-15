@@ -232,6 +232,37 @@ class Group_LDAP extends BackendUtility implements \OCP\GroupInterface, IGroupLD
 		if($groupMembers !== null) {
 			return $groupMembers;
 		}
+
+		if ($this->access->connection->ldapNestedGroups
+			&& $this->access->connection->useMemberOfToDetectMembership
+			&& $this->access->connection->hasMemberOfFilterSupport
+			&& $this->access->connection->ldapMatchingRuleInChainState !== Configuration::LDAP_SERVER_FEATURE_UNAVAILABLE
+		) {
+			$attemptedLdapMatchingRuleInChain = true;
+			// compatibility hack with servers supporting :1.2.840.113556.1.4.1941:, and others)
+			$filter = $this->access->combineFilterWithAnd([
+				$this->access->connection->ldapUserFilter,
+				$this->access->connection->ldapUserDisplayName . '=*',
+				'memberof:1.2.840.113556.1.4.1941:=' . $dnGroup
+			]);
+			$memberRecords = $this->access->fetchListOfUsers(
+				$filter,
+				$this->access->userManager->getAttributes(true)
+			);
+			$result = array_reduce($memberRecords, function ($carry, $record) {
+				$carry[] = $record['dn'][0];
+				return $carry;
+			}, []);
+			if ($this->access->connection->ldapMatchingRuleInChainState === Configuration::LDAP_SERVER_FEATURE_AVAILABLE) {
+				return $result;
+			} elseif (!empty($memberRecords)) {
+				$this->access->connection->ldapMatchingRuleInChainState = Configuration::LDAP_SERVER_FEATURE_AVAILABLE;
+				$this->access->connection->saveConfiguration();
+				return $result;
+			}
+			// when feature availability is unknown, and the result is empty, continue and test with original approach
+		}
+
 		$seen[$dnGroup] = 1;
 		$members = $this->access->readAttribute($dnGroup, $this->access->connection->ldapGroupMemberAssocAttr);
 		if (is_array($members)) {
@@ -244,6 +275,13 @@ class Group_LDAP extends BackendUtility implements \OCP\GroupInterface, IGroupLD
 		$allMembers += $this->getDynamicGroupMembers($dnGroup);
 
 		$this->access->connection->writeToCache($cacheKey, $allMembers);
+		if (isset($attemptedLdapMatchingRuleInChain)
+			&& $this->access->connection->ldapMatchingRuleInChainState === Configuration::LDAP_SERVER_FEATURE_UNKNOWN
+			&& !empty($allMembers)
+		) {
+			$this->access->connection->ldapMatchingRuleInChainState = Configuration::LDAP_SERVER_FEATURE_UNAVAILABLE;
+			$this->access->connection->saveConfiguration();
+		}
 		return $allMembers;
 	}
 
@@ -829,6 +867,9 @@ class Group_LDAP extends BackendUtility implements \OCP\GroupInterface, IGroupLD
 			return $groupUsers;
 		}
 
+		if ($limit === -1) {
+			$limit = null;
+		}
 		// check for cache of the query without limit and offset
 		$groupUsers = $this->access->connection->getFromCache('usersInGroup-'.$gid.'-'.$search);
 		if(!is_null($groupUsers)) {
@@ -837,9 +878,6 @@ class Group_LDAP extends BackendUtility implements \OCP\GroupInterface, IGroupLD
 			return $groupUsers;
 		}
 
-		if($limit === -1) {
-			$limit = null;
-		}
 		$groupDN = $this->access->groupname2dn($gid);
 		if(!$groupDN) {
 			// group couldn't be found, return empty resultset
@@ -1002,16 +1040,19 @@ class Group_LDAP extends BackendUtility implements \OCP\GroupInterface, IGroupLD
 	}
 
 	/**
-	 * get a list of all groups
+	 * get a list of all groups using a paged search
 	 *
 	 * @param string $search
-	 * @param $limit
+	 * @param int $limit
 	 * @param int $offset
 	 * @return array with group names
 	 *
-	 * Returns a list with all groups (used by getGroups)
+	 * Returns a list with all groups
+	 * Uses a paged search if available to override a
+	 * server side search limit.
+	 * (active directory has a limit of 1000 by default)
 	 */
-	protected function getGroupsChunk($search = '', $limit = -1, $offset = 0) {
+	public function getGroups($search = '', $limit = -1, $offset = 0) {
 		if(!$this->enabled) {
 			return array();
 		}
@@ -1042,52 +1083,6 @@ class Group_LDAP extends BackendUtility implements \OCP\GroupInterface, IGroupLD
 
 		$this->access->connection->writeToCache($cacheKey, $ldap_groups);
 		return $ldap_groups;
-	}
-
-	/**
-	 * get a list of all groups using a paged search
-	 *
-	 * @param string $search
-	 * @param int $limit
-	 * @param int $offset
-	 * @return array with group names
-	 *
-	 * Returns a list with all groups
-	 * Uses a paged search if available to override a
-	 * server side search limit.
-	 * (active directory has a limit of 1000 by default)
-	 */
-	public function getGroups($search = '', $limit = -1, $offset = 0) {
-		if(!$this->enabled) {
-			return array();
-		}
-		$search = $this->access->escapeFilterPart($search, true);
-		$pagingSize = (int)$this->access->connection->ldapPagingSize;
-		if ($pagingSize <= 0) {
-			return $this->getGroupsChunk($search, $limit, $offset);
-		}
-		$maxGroups = 100000; // limit max results (just for safety reasons)
-		if ($limit > -1) {
-		   $overallLimit = min($limit + $offset, $maxGroups);
-		} else {
-		   $overallLimit = $maxGroups;
-		}
-		$chunkOffset = $offset;
-		$allGroups = array();
-		while ($chunkOffset < $overallLimit) {
-			$chunkLimit = min($pagingSize, $overallLimit - $chunkOffset);
-			$ldapGroups = $this->getGroupsChunk($search, $chunkLimit, $chunkOffset);
-			$nread = count($ldapGroups);
-			\OCP\Util::writeLog('user_ldap', 'getGroups('.$search.'): read '.$nread.' at offset '.$chunkOffset.' (limit: '.$chunkLimit.')', ILogger::DEBUG);
-			if ($nread) {
-				$allGroups = array_merge($allGroups, $ldapGroups);
-				$chunkOffset += $nread;
-			}
-			if ($nread < $chunkLimit) {
-				break;
-			}
-		}
-		return $allGroups;
 	}
 
 	/**

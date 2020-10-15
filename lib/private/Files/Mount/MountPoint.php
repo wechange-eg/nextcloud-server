@@ -101,6 +101,7 @@ class MountPoint implements IMountPoint {
 
 		$mountpoint = $this->formatPath($mountpoint);
 		$this->mountPoint = $mountpoint;
+		$this->mountId = $mountId;
 		if ($storage instanceof Storage) {
 			$this->class = get_class($storage);
 			$this->storage = $this->loader->wrap($this, $storage);
@@ -112,7 +113,6 @@ class MountPoint implements IMountPoint {
 			$this->class = $storage;
 			$this->arguments = $arguments;
 		}
-		$this->mountId = $mountId;
 	}
 
 	/**
@@ -267,7 +267,7 @@ class MountPoint implements IMountPoint {
 	 * @return int
 	 */
 	public function getStorageRootId() {
-		if (is_null($this->rootId)) {
+		if (is_null($this->rootId) || $this->rootId === -1) {
 			$this->rootId = (int)$this->getStorage()->getCache()->getId('');
 		}
 		return $this->rootId;

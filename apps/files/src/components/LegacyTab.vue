@@ -68,15 +68,16 @@ export default {
 		},
 	},
 	watch: {
-		activeTab(activeTab) {
-			if (activeTab === this.id && this.fileInfo) {
-				this.setFileInfo(this.fileInfo)
+		fileInfo(fileInfo) {
+			if (fileInfo) {
+				this.setFileInfo(fileInfo)
 			}
 		},
 	},
 	mounted() {
 		// append the backbone element and set the FileInfo
 		this.component.$el.appendTo(this.$el)
+		this.setFileInfo(this.fileInfo)
 	},
 	beforeDestroy() {
 		this.component.remove()

@@ -62,6 +62,7 @@ use OC\App\AppStore\Fetcher\CategoryFetcher;
 use OC\AppFramework\Http\Request;
 use OC\AppFramework\Utility\SimpleContainer;
 use OC\AppFramework\Utility\TimeFactory;
+use OC\Authentication\Listeners\UserLoggedInListener;
 use OC\Authentication\LoginCredentials\Store;
 use OC\Authentication\Token\IProvider;
 use OC\Avatar\AvatarManager;
@@ -136,6 +137,8 @@ use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
 use OCP\Authentication\LoginCredentials\IStore;
 use OCP\Collaboration\AutoComplete\IManager;
+use OCP\Command\IBus;
+use OCP\Comments\ICommentsManager;
 use OCP\Contacts\ContactsMenu\IActionFactory;
 use OCP\Contacts\ContactsMenu\IContactsStore;
 use OCP\Dashboard\IDashboardManager;
@@ -164,6 +167,7 @@ use OCP\IL10N;
 use OCP\IServerContainer;
 use OCP\ITempManager;
 use OCP\IUser;
+use OCP\L10N\IFactory;
 use OCP\Lock\ILockingProvider;
 use OCP\Log\ILogFactory;
 use OCP\Remote\Api\IApiFactory;
@@ -178,6 +182,7 @@ use OCP\User\Events\BeforeUserLoggedInEvent;
 use OCP\User\Events\BeforeUserLoggedInWithCookieEvent;
 use OCP\User\Events\BeforeUserLoggedOutEvent;
 use OCP\User\Events\PasswordUpdatedEvent;
+use OCP\User\Events\PostLoginEvent;
 use OCP\User\Events\UserChangedEvent;
 use OCP\User\Events\UserCreatedEvent;
 use OCP\User\Events\UserDeletedEvent;
@@ -858,7 +863,7 @@ class Server extends ServerContainer implements IServerContainer {
 		$this->registerService('AsyncCommandBus', function (Server $c) {
 			$busClass = $c->getConfig()->getSystemValue('commandbus');
 			if ($busClass) {
-				list($app, $class) = explode('::', $busClass, 2);
+				[$app, $class] = explode('::', $busClass, 2);
 				if ($c->getAppManager()->isInstalled($app)) {
 					\OC_App::loadApp($app);
 					return $c->query($class);
@@ -870,6 +875,7 @@ class Server extends ServerContainer implements IServerContainer {
 				return new CronBus($jobList);
 			}
 		});
+		$this->registerAlias(IBus::class, 'AsyncCommandBus');
 		$this->registerService('TrustedDomainHelper', function ($c) {
 			return new TrustedDomainHelper($this->getConfig());
 		});
@@ -946,7 +952,8 @@ class Server extends ServerContainer implements IServerContainer {
 				$c->getLogger(),
 				$c->query(Defaults::class),
 				$c->getURLGenerator(),
-				$c->getL10N('lib')
+				$c->getL10N('lib'),
+				$c->query(IFactory::class)
 			);
 		});
 		$this->registerAlias('Mailer', \OCP\Mail\IMailer::class);
@@ -1373,6 +1380,10 @@ class Server extends ServerContainer implements IServerContainer {
 				// no avatar to remove
 			}
 		});
+
+		/** @var IEventDispatcher $eventDispatched */
+		$eventDispatched = $this->query(IEventDispatcher::class);
+		$eventDispatched->addServiceListener(PostLoginEvent::class, UserLoggedInListener::class);
 	}
 
 	/**

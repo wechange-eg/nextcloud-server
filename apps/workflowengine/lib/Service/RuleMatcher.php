@@ -61,6 +61,8 @@ class RuleMatcher implements IRuleMatcher {
 	protected $entity;
 	/** @var Logger */
 	protected $logger;
+	/** @var string */
+	protected $eventName;
 
 	public function __construct(
 		IUserSession $session,
@@ -100,6 +102,13 @@ class RuleMatcher implements IRuleMatcher {
 		$this->entity = $entity;
 	}
 
+	public function setEventName(string $eventName): void {
+		if ($this->eventName !== null) {
+			throw new RuntimeException('This method must not be called more than once');
+		}
+		$this->eventName = $eventName;
+	}
+
 	public function getEntity(): IEntity {
 		if($this->entity === null) {
 			throw new \LogicException('Entity was not set yet');
@@ -117,7 +126,7 @@ class RuleMatcher implements IRuleMatcher {
 	public function getMatchingOperations(string $class, bool $returnFirstMatchingOperationOnly = true): array {
 		$scopes[] = new ScopeContext(IManager::SCOPE_ADMIN);
 		$user = $this->session->getUser();
-		if($user !== null) {
+		if($user !== null && $this->manager->isUserScopeEnabled()) {
 			$scopes[] = new ScopeContext(IManager::SCOPE_USER, $user->getUID());
 		}
 
@@ -143,7 +152,7 @@ class RuleMatcher implements IRuleMatcher {
 				if ($this->entity->isLegitimatedForUserId($scopeCandidate->getScopeId())) {
 					$ctx = new LogContext();
 					$ctx
-						->setScopes($scopeCandidate)
+						->setScopes([$scopeCandidate])
 						->setEntity($this->entity)
 						->setOperation($this->operation);
 					$this->logger->logScopeExpansion($ctx);
@@ -154,6 +163,11 @@ class RuleMatcher implements IRuleMatcher {
 
 		$matches = [];
 		foreach ($operations as $operation) {
+			$configuredEvents = json_decode($operation['events'], true);
+			if ($this->eventName !== null && !in_array($this->eventName, $configuredEvents)) {
+				continue;
+			}
+
 			$checkIds = json_decode($operation['checks'], true);
 			$checks = $this->manager->getChecks($checkIds);
 

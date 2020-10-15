@@ -67,14 +67,14 @@ class UserPlugin implements ISearchPlugin {
 		$users = [];
 		$hasMoreResults = false;
 
-		$userGroups = [];
+		$currentUserGroups = $this->groupManager->getUserGroupIds($this->userSession->getUser());
 		if ($this->shareWithGroupOnly) {
 			// Search in all the groups this user is part of
-			$userGroups = $this->groupManager->getUserGroupIds($this->userSession->getUser());
-			foreach ($userGroups as $userGroup) {
-				$usersTmp = $this->groupManager->displayNamesInGroup($userGroup, $search, $limit, $offset);
-				foreach ($usersTmp as $uid => $userDisplayName) {
-					$users[(string) $uid] = $userDisplayName;
+			foreach ($currentUserGroups as $userGroupId) {
+				$usersInGroup = $this->groupManager->displayNamesInGroup($userGroupId, $search, $limit, $offset);
+				foreach ($usersInGroup as $userId => $displayName) {
+					$userId = (string) $userId;
+					$users[$userId] = $this->userManager->get($userId);
 				}
 			}
 		} else {
@@ -83,7 +83,7 @@ class UserPlugin implements ISearchPlugin {
 
 			foreach ($usersTmp as $user) {
 				if ($user->isEnabled()) { // Don't keep deactivated users
-					$users[(string) $user->getUID()] = $user->getDisplayName();
+					$users[(string) $user->getUID()] = $user;
 				}
 			}
 		}
@@ -96,9 +96,15 @@ class UserPlugin implements ISearchPlugin {
 
 		$foundUserById = false;
 		$lowerSearch = strtolower($search);
-		foreach ($users as $uid => $userDisplayName) {
+		foreach ($users as $uid => $user) {
+			$userDisplayName = $user->getDisplayName();
+			$userEmail = $user->getEMailAddress();
 			$uid = (string) $uid;
-			if (strtolower($uid) === $lowerSearch || strtolower($userDisplayName) === $lowerSearch) {
+			if (
+				$lowerSearch !== '' && (strtolower($uid) === $lowerSearch ||
+				strtolower($userDisplayName) === $lowerSearch ||
+				strtolower($userEmail) === $lowerSearch)
+			) {
 				if (strtolower($uid) === $lowerSearch) {
 					$foundUserById = true;
 				}
@@ -129,7 +135,7 @@ class UserPlugin implements ISearchPlugin {
 
 				if ($this->shareWithGroupOnly) {
 					// Only add, if we have a common group
-					$commonGroups = array_intersect($userGroups, $this->groupManager->getUserGroupIds($user));
+					$commonGroups = array_intersect($currentUserGroups, $this->groupManager->getUserGroupIds($user));
 					$addUser = !empty($commonGroups);
 				}
 
@@ -151,6 +157,9 @@ class UserPlugin implements ISearchPlugin {
 
 		$type = new SearchResultType('users');
 		$searchResult->addResultSet($type, $result['wide'], $result['exact']);
+		if (count($result['exact'])) {
+			$searchResult->markExactIdMatch($type);
+		}
 
 		return $hasMoreResults;
 	}
