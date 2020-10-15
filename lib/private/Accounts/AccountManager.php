@@ -322,7 +322,7 @@ class AccountManager implements IAccountManager {
 			self::PROPERTY_EMAIL =>
 				[
 					'value' => $user->getEMailAddress(),
-					'scope' => self::VISIBILITY_CONTACTS_ONLY,
+					'scope' => self::VISIBILITY_PRIVATE,
 					'verified' => self::NOT_VERIFIED,
 				],
 			self::PROPERTY_AVATAR =>
